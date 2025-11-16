@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Trophy, Users, Home, LogOut, BarChart3, Settings } from "lucide-react";
@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,7 +39,11 @@ export default function Layout({ children, currentPageName }) {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    base44.auth.logout(createPageUrl("Login"));
+    base44.auth.logout();
+  };
+
+  const handleLogin = () => {
+    base44.auth.redirectToLogin(window.location.href);
   };
 
   const isAdmin = user?.role === 'admin';
@@ -74,7 +77,7 @@ export default function Layout({ children, currentPageName }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-sky-50">
         <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -164,10 +167,10 @@ export default function Layout({ children, currentPageName }) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate(createPageUrl("Login"))}
+                    onClick={handleLogin}
                     className="w-full"
                   >
-                    Iniciar Sesión
+                    Iniciar Sesión Admin
                   </Button>
                 </div>
               )}
