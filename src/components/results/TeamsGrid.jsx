@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack-react/query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,22 @@ import { toast } from "sonner";
 export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId }) {
   const [viewMode, setViewMode] = useState("cards");
   const [isReorganizing, setIsReorganizing] = useState(false);
+  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        setUser(null);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const isAdmin = user?.role === 'admin';
 
   const handleReorganize = async () => {
     setIsReorganizing(true);
@@ -224,23 +240,27 @@ Responde SOLO con el JSON solicitado.`,
             </div>
 
             <div className="flex gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyToClipboard}
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copiar CSV
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadCSV}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Descargar CSV
-              </Button>
-              {tournament?.estado === 'equipos_armados' && (
+              {isAdmin && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyToClipboard}
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copiar CSV
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownloadCSV}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Descargar CSV
+                  </Button>
+                </>
+              )}
+              {tournament?.estado === 'equipos_armados' && isAdmin && (
                 <Button
                   size="sm"
                   onClick={handleReorganize}
@@ -281,12 +301,14 @@ Responde SOLO con el JSON solicitado.`,
                         <CardTitle className="text-xl font-bold text-gray-900 mb-2">
                           {team.nombre}
                         </CardTitle>
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-sky-500 text-white">
-                            <TrendingUp className="w-3 h-3 mr-1" />
-                            Promedio: {team.promedio_calificacion}
-                          </Badge>
-                        </div>
+                        {isAdmin && (
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-sky-500 text-white">
+                              <TrendingUp className="w-3 h-3 mr-1" />
+                              Promedio: {team.promedio_calificacion}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
@@ -312,11 +334,13 @@ Responde SOLO con el JSON solicitado.`,
                                 {player.genero === "femenino" ? "F" : "M"}
                               </Badge>
                             </div>
-                            <div className="flex items-center gap-1">
-                              {[...Array(player.calificacion)].map((_, i) => (
-                                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                              ))}
-                            </div>
+                            {isAdmin && (
+                              <div className="flex items-center gap-1">
+                                {[...Array(player.calificacion)].map((_, i) => (
+                                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                ))}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -336,9 +360,9 @@ Responde SOLO con el JSON solicitado.`,
                       <TableHead className="font-bold">Equipo</TableHead>
                       <TableHead className="font-bold">Jugador</TableHead>
                       <TableHead className="font-bold">Género</TableHead>
-                      <TableHead className="font-bold">Calificación</TableHead>
+                      {isAdmin && <TableHead className="font-bold">Calificación</TableHead>}
                       <TableHead className="font-bold">Rol</TableHead>
-                      <TableHead className="font-bold">Promedio</TableHead>
+                      {isAdmin && <TableHead className="font-bold">Promedio</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -364,13 +388,15 @@ Responde SOLO con el JSON solicitado.`,
                                 {player.genero === "femenino" ? "F" : "M"}
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                {[...Array(player.calificacion)].map((_, i) => (
-                                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                ))}
-                              </div>
-                            </TableCell>
+                            {isAdmin && (
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  {[...Array(player.calificacion)].map((_, i) => (
+                                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                  ))}
+                                </div>
+                              </TableCell>
+                            )}
                             <TableCell>
                               {isCaptain && (
                                 <Badge className="bg-amber-500 text-white">
@@ -379,7 +405,7 @@ Responde SOLO con el JSON solicitado.`,
                                 </Badge>
                               )}
                             </TableCell>
-                            {idx === 0 && (
+                            {isAdmin && idx === 0 && (
                               <TableCell rowSpan={teamPlayers.length} className="font-bold text-sky-600 bg-sky-50">
                                 {team.promedio_calificacion}
                               </TableCell>
