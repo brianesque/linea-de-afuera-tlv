@@ -4,6 +4,8 @@ import CreateTournament from './pages/CreateTournament';
 import TournamentDetail from './pages/TournamentDetail';
 import OrganizeTeams from './pages/OrganizeTeams';
 import TournamentResults from './pages/TournamentResults';
+import AdminPanel from './pages/AdminPanel';
+import PlayerStats from './pages/PlayerStats';
 import Layout from './Layout.jsx';
 
 
@@ -14,6 +16,8 @@ export const PAGES = {
     "TournamentDetail": TournamentDetail,
     "OrganizeTeams": OrganizeTeams,
     "TournamentResults": TournamentResults,
+    "AdminPanel": AdminPanel,
+    "PlayerStats": PlayerStats,
 }
 
 export const pagesConfig = {
