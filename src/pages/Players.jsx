@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -71,10 +72,16 @@ export default function Players() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Asegurar que genero siempre tenga un valor
+    const dataToSave = {
+      ...formData,
+      genero: formData.genero || "masculino"
+    };
+    
     if (editingPlayer) {
-      updateMutation.mutate({ id: editingPlayer.id, data: formData });
+      updateMutation.mutate({ id: editingPlayer.id, data: dataToSave });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(dataToSave);
     }
   };
 
