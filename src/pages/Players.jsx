@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, Star, UserPlus, Edit2, Trash2 } from "lucide-react";
+import { Search, Plus, Star, UserPlus, Edit2, Trash2, LayoutGrid, List, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,12 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import BulkPlayerDialog from "../components/players/BulkPlayerDialog";
 
 export default function Players() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDialog, setShowDialog] = useState(false);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [formData, setFormData] = useState({ nombre: "", calificacion: 3 });
+  const [viewMode, setViewMode] = useState("grid");
 
   const queryClient = useQueryClient();
 
@@ -98,7 +101,7 @@ export default function Players() {
           </p>
         </div>
 
-        {/* Search and Add */}
+        {/* Search, View Toggle and Add */}
         <Card className="mb-6 border-2 border-orange-100 shadow-lg">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-4">
@@ -111,21 +114,50 @@ export default function Players() {
                   className="pl-10 h-12 text-lg"
                 />
               </div>
-              <Button
-                size="lg"
-                onClick={openCreateDialog}
-                className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 h-12"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Nuevo Jugador
-              </Button>
+              <div className="flex gap-2">
+                <div className="flex border-2 border-gray-200 rounded-lg overflow-hidden">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("grid")}
+                    className="rounded-none"
+                  >
+                    <LayoutGrid className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("list")}
+                    className="rounded-none"
+                  >
+                    <List className="w-5 h-5" />
+                  </Button>
+                </div>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => setShowBulkDialog(true)}
+                  className="h-12"
+                >
+                  <Users className="w-5 h-5 mr-2" />
+                  Agregar Varios
+                </Button>
+                <Button
+                  size="lg"
+                  onClick={openCreateDialog}
+                  className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 h-12"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Nuevo Jugador
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Players List */}
+        {/* Players Display */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-2"}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i} className="animate-pulse">
                 <CardContent className="h-32 bg-gray-100" />
@@ -150,7 +182,7 @@ export default function Players() {
               )}
             </CardContent>
           </Card>
-        ) : (
+        ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredPlayers.map((player) => (
               <Card
@@ -202,6 +234,58 @@ export default function Players() {
               </Card>
             ))}
           </div>
+        ) : (
+          <Card className="border-2 border-sky-100 shadow-lg">
+            <CardContent className="p-0">
+              <div className="divide-y divide-gray-200">
+                {filteredPlayers.map((player) => (
+                  <div
+                    key={player.id}
+                    className="flex items-center justify-between p-4 hover:bg-sky-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                        {player.nombre[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">{player.nombre}</p>
+                        <div className="flex gap-1 mt-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${
+                                star <= player.calificacion
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => openEditDialog(player)}
+                        className="hover:bg-sky-100"
+                      >
+                        <Edit2 className="w-4 h-4 text-sky-600" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => deleteMutation.mutate(player.id)}
+                        className="hover:bg-red-100"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Create/Edit Dialog */}
@@ -263,6 +347,12 @@ export default function Players() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Bulk Player Dialog */}
+        <BulkPlayerDialog 
+          open={showBulkDialog} 
+          onOpenChange={setShowBulkDialog}
+        />
       </div>
     </div>
   );
