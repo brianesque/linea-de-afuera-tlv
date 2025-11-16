@@ -14,7 +14,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
 
 export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId }) {
   const [viewMode, setViewMode] = useState("cards");
@@ -193,18 +192,6 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
     toast.success("¡CSV descargado!");
   };
 
-  const handleDownloadPNG = async () => {
-    const element = document.getElementById('teams-display');
-    if (element) {
-      const canvas = await html2canvas(element);
-      const link = document.createElement('a');
-      link.download = 'equipos_torneo.png';
-      link.href = canvas.toDataURL();
-      link.click();
-      toast.success("¡Imagen descargada!");
-    }
-  };
-
   return (
     <div className="space-y-4">
       <Card className="border-2 border-sky-100">
@@ -248,15 +235,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                 onClick={handleDownloadCSV}
               >
                 <Download className="w-4 h-4 mr-2" />
-                CSV
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadPNG}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                PNG
+                Descargar CSV
               </Button>
               {tournament?.estado === 'equipos_armados' && (
                 <Button
