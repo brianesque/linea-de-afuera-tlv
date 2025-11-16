@@ -7,7 +7,7 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Calendar, Trophy, DollarSign, Play, User, Settings } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Trophy, DollarSign, Play, User, Settings, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
@@ -76,6 +76,38 @@ export default function TournamentDetail() {
       toast.success("Configuración actualizada");
     },
   });
+
+  const deleteTournamentMutation = useMutation({
+    mutationFn: async (tournamentIdToDelete) => {
+      // Eliminar matches
+      const matchesToDelete = await base44.entities.Match.filter({ tournament_id: tournamentIdToDelete });
+      for (const match of matchesToDelete) {
+        await base44.entities.Match.delete(match.id);
+      }
+      
+      // Eliminar teams
+      const teamsToDelete = await base44.entities.Team.filter({ tournament_id: tournamentIdToDelete });
+      for (const team of teamsToDelete) {
+        await base44.entities.Team.delete(team.id);
+      }
+      
+      // Eliminar torneo
+      await base44.entities.Tournament.delete(tournamentIdToDelete);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tournaments'] });
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      toast.success("Torneo eliminado completamente");
+      navigate(createPageUrl("Home"));
+    },
+  });
+
+  const handleDeleteTournament = () => {
+    if (window.confirm(`¿Estás seguro de eliminar el torneo "${tournament.nombre}"? Esta acción eliminará todas las estadísticas y no se puede deshacer.`)) {
+      deleteTournamentMutation.mutate(tournament.id);
+    }
+  };
 
   const handleTogglePlayoff = (field, value) => {
     updateTournamentMutation.mutate({
@@ -226,29 +258,42 @@ export default function TournamentDetail() {
             <h1 className="text-3xl font-bold text-gray-900">{tournament.nombre}</h1>
             <p className="text-gray-600">Detalles y configuración del torneo</p>
           </div>
-          {tournament.estado === 'configuracion' && isAdmin && (
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-              onClick={() => navigate(createPageUrl(`OrganizeTeams?id=${tournament.id}`))}
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Organizar Equipos
-            </Button>
-          )}
-          {canStartPlayoff && isAdmin && (
-            <PlayoffDialog 
-              tournament={tournament}
-              matches={matches}
-              teams={teams}
-            />
-          )}
-          {(tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados') && isAdmin && !canStartPlayoff && (
-            <FinishTournamentDialog 
-              tournament={tournament} 
-              matches={matches}
-              onFinish={() => navigate(createPageUrl("Home"))}
-            />
+          {isAdmin && (
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteTournament}
+                disabled={deleteTournamentMutation.isPending}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {deleteTournamentMutation.isPending ? "Eliminando..." : "Eliminar Torneo"}
+              </Button>
+              {tournament.estado === 'configuracion' && (
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                  onClick={() => navigate(createPageUrl(`OrganizeTeams?id=${tournament.id}`))}
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Organizar Equipos
+                </Button>
+              )}
+              {canStartPlayoff && (
+                <PlayoffDialog 
+                  tournament={tournament}
+                  matches={matches}
+                  teams={teams}
+                />
+              )}
+              {(tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados') && !canStartPlayoff && (
+                <FinishTournamentDialog 
+                  tournament={tournament} 
+                  matches={matches}
+                  onFinish={() => navigate(createPageUrl("Home"))}
+                />
+              )}
+            </div>
           )}
         </div>
 

@@ -64,13 +64,16 @@ export default function CreateTournament() {
         formato: template.formato,
         criterio_ganador: template.criterio_ganador || "sets",
         criterio_empate: template.criterio_empate || "diferencia_puntos",
+        jugar_semifinal: template.jugar_semifinal || false,
+        jugar_final: template.jugar_final || false,
         duracion_partido_minutos: template.duracion_partido_minutos || 30,
         puntos_por_set: template.puntos_por_set || 15, // Apply template value for puntos_por_set
         cervezas_por_persona: template.cervezas_por_persona || 2,
         bebidas_por_persona: template.bebidas_por_persona || 2,
         snacks: template.snacks || false,
+        template_id: templateId,
       });
-      toast.success("Template aplicado");
+      toast.success("Plantilla aplicada");
     }
   };
 
