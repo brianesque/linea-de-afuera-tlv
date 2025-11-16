@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -63,6 +64,73 @@ export default function TournamentDetail() {
     initialData: [],
   });
 
+  const winnerTeam = useMemo(() => {
+    if (tournament?.estado !== 'finalizado' || teams.length === 0 || matches.length === 0) {
+      return null;
+    }
+
+    const stats = teams.map(team => {
+      const teamMatches = matches.filter(m =>
+        (m.equipo1_id === team.id || m.equipo2_id === team.id) && m.estado === 'finalizado'
+      );
+
+      let partidosGanados = 0;
+      let setsAFavor = 0;
+      let setsEnContra = 0;
+      let puntosAFavor = 0;
+      let puntosEnContra = 0;
+
+      teamMatches.forEach(match => {
+        const isTeam1 = match.equipo1_id === team.id;
+        const teamSets = isTeam1 ? match.sets_equipo1 : match.sets_equipo2;
+        const opponentSets = isTeam1 ? match.sets_equipo2 : match.sets_equipo1;
+        const teamPoints = isTeam1 ? match.puntos_equipo1 : match.puntos_equipo2;
+        const opponentPoints = isTeam1 ? match.puntos_equipo2 : match.puntos_equipo1;
+
+        setsAFavor += teamSets || 0;
+        setsEnContra += opponentSets || 0;
+        puntosAFavor += teamPoints || 0;
+        puntosEnContra += opponentPoints || 0;
+
+        if (teamSets > opponentSets) {
+          partidosGanados++;
+        }
+      });
+
+      return {
+        team,
+        partidosGanados,
+        setsAFavor,
+        diferenciaSets: setsAFavor - setsEnContra,
+        puntosAFavor,
+        diferenciaPuntos: puntosAFavor - puntosEnContra
+      };
+    });
+
+    stats.sort((a, b) => {
+      if (tournament.criterio_ganador === 'sets') {
+        if (b.setsAFavor !== a.setsAFavor) return b.setsAFavor - a.setsAFavor;
+      } else {
+        if (b.partidosGanados !== a.partidosGanados) return b.partidosGanados - a.partidosGanados;
+      }
+
+      if (tournament.criterio_empate === 'diferencia_puntos') {
+        if (b.diferenciaPuntos !== a.diferenciaPuntos) return b.diferenciaPuntos - a.diferenciaPuntos;
+      } else {
+        if (b.puntosAFavor !== a.puntosAFavor) return b.puntosAFavor - a.puntosAFavor;
+      }
+
+      return b.diferenciaSets - a.diferenciaSets;
+    });
+
+    return stats[0]?.team;
+  }, [tournament, teams, matches]);
+
+  const winnerPlayerIds = useMemo(() => {
+    if (!winnerTeam) return [];
+    return winnerTeam.jugadores_ids || [];
+  }, [winnerTeam]);
+
   if (!tournamentId) {
     navigate(createPageUrl("Home"));
     return null;
@@ -95,7 +163,7 @@ export default function TournamentDetail() {
     );
   }
 
-  const participantes = allPlayers.filter(p => 
+  const participantes = allPlayers.filter(p =>
     tournament.jugadores_seleccionados?.includes(p.id)
   );
 
@@ -126,8 +194,8 @@ export default function TournamentDetail() {
             </Button>
           )}
           {(tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados') && isAdmin && (
-            <FinishTournamentDialog 
-              tournament={tournament} 
+            <FinishTournamentDialog
+              tournament={tournament}
               matches={matches}
               onFinish={() => navigate(createPageUrl("Home"))}
             />
@@ -148,6 +216,18 @@ export default function TournamentDetail() {
           </TabsList>
 
           <TabsContent value="info">
+            {tournament.estado === 'finalizado' && winnerTeam && (
+              <Card className="mb-6 border-4 border-yellow-300 shadow-2xl bg-gradient-to-br from-yellow-50 to-amber-50">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">¡Campeón del Torneo!</h2>
+                    <p className="text-2xl font-bold text-yellow-700">{winnerTeam.nombre}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <Card className="lg:col-span-2 border-2 border-sky-100 shadow-lg">
                 <CardHeader className="bg-gradient-to-r from-sky-100 to-blue-100">
@@ -275,20 +355,26 @@ export default function TournamentDetail() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {participantes.map((player) => (
-                      <Card key={player.id} className="border border-purple-200">
-                        <CardContent className="pt-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-semibold text-gray-900">{player.nombre}</p>
-                              <p className="text-sm text-gray-500">
-                                {player.genero === "femenino" ? "Femenino" : "Masculino"}
-                              </p>
+                    {participantes.map((player) => {
+                      const isChampion = winnerPlayerIds.includes(player.id);
+                      return (
+                        <Card key={player.id} className={`border ${isChampion ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50' : 'border-purple-200'}`}>
+                          <CardContent className="pt-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-gray-900">{player.nombre}</p>
+                                  {isChampion && <Trophy className="w-5 h-5 text-yellow-500" />}
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                  {player.genero === "femenino" ? "Femenino" : "Masculino"}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -298,7 +384,7 @@ export default function TournamentDetail() {
           {(tournament.estado === 'equipos_armados' || tournament.estado === 'en_curso' || tournament.estado === 'finalizado') && (
             <>
               <TabsContent value="standings">
-                <StandingsTable 
+                <StandingsTable
                   teams={teams}
                   matches={matches}
                   tournament={tournament}
@@ -306,18 +392,19 @@ export default function TournamentDetail() {
               </TabsContent>
 
               <TabsContent value="teams">
-                <TeamsGrid 
-                  teams={teams} 
-                  allPlayers={allPlayers} 
+                <TeamsGrid
+                  teams={teams}
+                  allPlayers={allPlayers}
                   tournament={tournament}
                   tournamentId={tournamentId}
+                  winnerTeamId={winnerTeam?.id}
                 />
               </TabsContent>
 
               <TabsContent value="fixture">
-                <MatchSchedule 
-                  matches={matches} 
-                  teams={teams} 
+                <MatchSchedule
+                  matches={matches}
+                  teams={teams}
                   tournament={tournament}
                   isAdmin={isAdmin}
                 />

@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Star, TrendingUp, LayoutGrid, Table2, Download, Copy, Sparkles } from "lucide-react";
+import { Crown, Star, TrendingUp, LayoutGrid, Table2, Download, Copy, Sparkles, Trophy } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 
-export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId }) {
+export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId, winnerTeamId }) {
   const [viewMode, setViewMode] = useState("cards");
   const [isReorganizing, setIsReorganizing] = useState(false);
   const [user, setUser] = useState(null);
@@ -289,17 +289,21 @@ Responde SOLO con el JSON solicitado.`,
               const teamPlayers = team.jugadores_ids
                 .map(id => allPlayers.find(p => p.id === id))
                 .filter(Boolean);
+              const isWinner = winnerTeamId === team.id;
 
               return (
-                <Card key={team.id} className="border-2 border-sky-100 shadow-lg hover:shadow-xl transition-all">
-                  <CardHeader className="bg-gradient-to-br from-sky-100 to-blue-100 border-b-2 border-sky-200">
+                <Card key={team.id} className={`border-2 shadow-lg hover:shadow-xl transition-all ${isWinner ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50' : 'border-sky-100'}`}>
+                  <CardHeader className={`border-b-2 ${isWinner ? 'bg-gradient-to-br from-yellow-100 to-amber-100 border-yellow-200' : 'bg-gradient-to-br from-sky-100 to-blue-100 border-sky-200'}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <CardTitle className="text-xl font-bold text-gray-900 mb-2">
-                          {team.nombre}
-                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-xl font-bold text-gray-900">
+                            {team.nombre}
+                          </CardTitle>
+                          {isWinner && <Trophy className="w-6 h-6 text-yellow-500" />}
+                        </div>
                         {isAdmin && (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 mt-2">
                             <Badge className="bg-sky-500 text-white">
                               <TrendingUp className="w-3 h-3 mr-1" />
                               Promedio: {team.promedio_calificacion}
@@ -330,6 +334,7 @@ Responde SOLO con el JSON solicitado.`,
                               <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
                                 {player.genero === "femenino" ? "F" : "M"}
                               </Badge>
+                              {isWinner && <Trophy className="w-4 h-4 text-yellow-500" />}
                             </div>
                             {isAdmin && (
                               <div className="flex items-center gap-1">
@@ -367,18 +372,25 @@ Responde SOLO con el JSON solicitado.`,
                       const teamPlayers = team.jugadores_ids
                         .map(id => allPlayers.find(p => p.id === id))
                         .filter(Boolean);
+                      const isWinner = winnerTeamId === team.id;
 
                       return teamPlayers.map((player, idx) => {
                         const isCaptain = player.id === team.capitan_id;
                         return (
-                          <TableRow key={`${team.id}-${player.id}`} className={idx === 0 ? "border-t-2 border-sky-200" : ""}>
+                          <TableRow key={`${team.id}-${player.id}`} className={`${idx === 0 ? "border-t-2 border-sky-200" : ""} ${isWinner ? 'bg-gradient-to-r from-yellow-50 to-amber-50' : ''}`}>
                             {idx === 0 && (
-                              <TableCell rowSpan={teamPlayers.length} className="font-semibold bg-sky-50">
-                                {team.nombre}
+                              <TableCell rowSpan={teamPlayers.length} className={`font-semibold ${isWinner ? 'bg-yellow-50' : 'bg-sky-50'}`}>
+                                <div className="flex items-center gap-2">
+                                  {team.nombre}
+                                  {isWinner && <Trophy className="w-5 h-5 text-yellow-500" />}
+                                </div>
                               </TableCell>
                             )}
                             <TableCell className={isCaptain ? "font-semibold text-amber-900" : ""}>
-                              {player.nombre}
+                              <div className="flex items-center gap-2">
+                                {player.nombre}
+                                {isWinner && <Trophy className="w-4 h-4 text-yellow-500" />}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <Badge className={`${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
@@ -403,7 +415,7 @@ Responde SOLO con el JSON solicitado.`,
                               )}
                             </TableCell>
                             {isAdmin && idx === 0 && (
-                              <TableCell rowSpan={teamPlayers.length} className="font-bold text-sky-600 bg-sky-50">
+                              <TableCell rowSpan={teamPlayers.length} className={`font-bold text-sky-600 ${isWinner ? 'bg-yellow-50' : 'bg-sky-50'}`}>
                                 {team.promedio_calificacion}
                               </TableCell>
                             )}

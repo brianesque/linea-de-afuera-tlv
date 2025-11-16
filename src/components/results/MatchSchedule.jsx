@@ -34,12 +34,16 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
   };
 
   const handleCopyToClipboard = () => {
-    let csv = "Partido,Equipo 1,Equipo 2,Hora Estimada\n";
+    let csv = "Partido,Equipo 1,Equipo 2,Hora Estimada,Set 1,Set 2,Set 3,Resultado\n";
     matches.forEach(match => {
       const team1Name = getTeamName(match.equipo1_id);
       const team2Name = getTeamName(match.equipo2_id);
       const time = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
-      csv += `${match.numero_partido},"${team1Name}","${team2Name}",${time}\n`;
+      const set1 = match.estado === 'finalizado' ? `${match.set1_equipo1}-${match.set1_equipo2}` : '-';
+      const set2 = match.estado === 'finalizado' ? `${match.set2_equipo1}-${match.set2_equipo2}` : '-';
+      const set3 = match.estado === 'finalizado' && match.set3_equipo1 !== null ? `${match.set3_equipo1}-${match.set3_equipo2}` : '-';
+      const resultado = match.estado === 'finalizado' ? `${match.sets_equipo1}-${match.sets_equipo2}` : '-';
+      csv += `${match.numero_partido},"${team1Name}","${team2Name}",${time},${set1},${set2},${set3},${resultado}\n`;
     });
 
     navigator.clipboard.writeText(csv);
@@ -47,12 +51,16 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
   };
 
   const handleDownloadCSV = () => {
-    let csv = "Partido,Equipo 1,Equipo 2,Hora Estimada\n";
+    let csv = "Partido,Equipo 1,Equipo 2,Hora Estimada,Set 1,Set 2,Set 3,Resultado\n";
     matches.forEach(match => {
       const team1Name = getTeamName(match.equipo1_id);
       const team2Name = getTeamName(match.equipo2_id);
       const time = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
-      csv += `${match.numero_partido},"${team1Name}","${team2Name}",${time}\n`;
+      const set1 = match.estado === 'finalizado' ? `${match.set1_equipo1}-${match.set1_equipo2}` : '-';
+      const set2 = match.estado === 'finalizado' ? `${match.set2_equipo1}-${match.set2_equipo2}` : '-';
+      const set3 = match.estado === 'finalizado' && match.set3_equipo1 !== null ? `${match.set3_equipo1}-${match.set3_equipo2}` : '-';
+      const resultado = match.estado === 'finalizado' ? `${match.sets_equipo1}-${match.sets_equipo2}` : '-';
+      csv += `${match.numero_partido},"${team1Name}","${team2Name}",${time},${set1},${set2},${set3},${resultado}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -156,7 +164,6 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
                           <Badge className="bg-sky-600 text-white text-lg px-3 py-1">
                             {match.sets_equipo1}
                           </Badge>
-                          <p className="text-xs text-gray-500 mt-1">{match.puntos_equipo1} pts</p>
                         </div>
                       )}
                     </div>
@@ -168,11 +175,32 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
                           <Badge className="bg-orange-600 text-white text-lg px-3 py-1">
                             {match.sets_equipo2}
                           </Badge>
-                          <p className="text-xs text-gray-500 mt-1">{match.puntos_equipo2} pts</p>
                         </div>
                       )}
                     </div>
                   </div>
+
+                  {match.estado === 'finalizado' && (
+                    <div className="pt-2 border-t border-gray-200">
+                      <p className="text-xs text-gray-500 mb-2">Detalle por Sets:</p>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="bg-white rounded p-2 border">
+                          <p className="text-xs text-gray-500 mb-1">Set 1</p>
+                          <p className="font-bold">{match.set1_equipo1} - {match.set1_equipo2}</p>
+                        </div>
+                        <div className="bg-white rounded p-2 border">
+                          <p className="text-xs text-gray-500 mb-1">Set 2</p>
+                          <p className="font-bold">{match.set2_equipo1} - {match.set2_equipo2}</p>
+                        </div>
+                        {match.set3_equipo1 !== null && match.set3_equipo1 !== undefined && (
+                          <div className="bg-white rounded p-2 border">
+                            <p className="text-xs text-gray-500 mb-1">Set 3</p>
+                            <p className="font-bold">{match.set3_equipo1} - {match.set3_equipo2}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {isAdmin && tournament?.estado !== 'finalizado' && (
                     <div className="pt-2 border-t border-gray-200">
@@ -196,6 +224,9 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
                     <TableHead className="font-bold">Equipo 2</TableHead>
                     <TableHead className="font-bold">Hora</TableHead>
                     <TableHead className="font-bold">Estado</TableHead>
+                    <TableHead className="font-bold text-center">Set 1</TableHead>
+                    <TableHead className="font-bold text-center">Set 2</TableHead>
+                    <TableHead className="font-bold text-center">Set 3</TableHead>
                     <TableHead className="font-bold text-center">Resultado</TableHead>
                     {isAdmin && tournament?.estado !== 'finalizado' && (
                       <TableHead className="font-bold">Acciones</TableHead>
@@ -218,6 +249,27 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
                         </TableCell>
                         <TableCell>
                           <Badge className={estadoBadge.class}>{estadoBadge.label}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {match.estado === 'finalizado' ? (
+                            <span className="font-semibold">{match.set1_equipo1} - {match.set1_equipo2}</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {match.estado === 'finalizado' ? (
+                            <span className="font-semibold">{match.set2_equipo1} - {match.set2_equipo2}</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {match.estado === 'finalizado' && match.set3_equipo1 !== null ? (
+                            <span className="font-semibold">{match.set3_equipo1} - {match.set3_equipo2}</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-center">
                           {match.estado === 'finalizado' ? (
