@@ -26,6 +26,7 @@ export default function CreateTournament() {
     criterio_ganador: "sets",
     criterio_empate: "diferencia_puntos",
     duracion_partido_minutos: 30,
+    puntos_por_set: 15, // Added new field
     cervezas_por_persona: 2,
     bebidas_por_persona: 2,
     snacks: true,
@@ -64,6 +65,7 @@ export default function CreateTournament() {
         criterio_ganador: template.criterio_ganador || "sets",
         criterio_empate: template.criterio_empate || "diferencia_puntos",
         duracion_partido_minutos: template.duracion_partido_minutos || 30,
+        puntos_por_set: template.puntos_por_set || 15, // Apply template value for puntos_por_set
         cervezas_por_persona: template.cervezas_por_persona || 2,
         bebidas_por_persona: template.bebidas_por_persona || 2,
         snacks: template.snacks || false,
@@ -215,6 +217,21 @@ export default function CreateTournament() {
                     onChange={(e) => setFormData({...formData, duracion_partido_minutos: parseInt(e.target.value)})}
                   />
                 </div>
+
+                {/* New Input for Puntos por Set */}
+                <div>
+                  <Label htmlFor="puntos_por_set">Puntos por Set</Label>
+                  <Input
+                    id="puntos_por_set"
+                    type="number"
+                    min="15"
+                    max="25"
+                    value={formData.puntos_por_set}
+                    onChange={(e) => setFormData({...formData, puntos_por_set: parseInt(e.target.value)})}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Puntos necesarios para ganar cada set</p>
+                </div>
+                {/* End New Input */}
               </div>
             </CardContent>
           </Card>

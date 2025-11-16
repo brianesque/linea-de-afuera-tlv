@@ -326,6 +326,13 @@ export default function TournamentDetail() {
                     </div>
 
                     <div>
+                      <p className="text-sm text-gray-500 mb-1">Puntos por Set</p>
+                      <p className="font-semibold text-gray-900">
+                        {tournament.puntos_por_set || 15} puntos
+                      </p>
+                    </div>
+
+                    <div>
                       <p className="text-sm text-gray-500 mb-1">Criterio para Ganador</p>
                       <p className="font-semibold text-gray-900">
                         {tournament.criterio_ganador === 'sets' ? 'Por Sets (Diferencia)' : 'Por Partidos Ganados'}

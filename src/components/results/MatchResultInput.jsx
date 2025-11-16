@@ -1,6 +1,7 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,11 +29,22 @@ export default function MatchResultInput({ match, team1, team2 }) {
 
   const queryClient = useQueryClient();
 
+  const { data: tournament } = useQuery({
+    queryKey: ['tournament', match.tournament_id],
+    queryFn: async () => {
+      const tournaments = await base44.entities.Tournament.list();
+      return tournaments.find(t => t.id === match.tournament_id);
+    },
+    enabled: !!match.tournament_id,
+  });
+
+  const puntosMinimos = tournament?.puntos_por_set || 15;
+
   const updateMatchMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Match.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      queryClient.invalidateQueries({ queryKey: ['tournament'] });
+      queryClient.invalidateQueries({ queryKey: ['tournament'] }); // Invalidate tournament query if needed for re-calculation or display
       setOpen(false);
       toast.success("Resultado guardado exitosamente");
     },
@@ -51,11 +63,16 @@ export default function MatchResultInput({ match, team1, team2 }) {
       newErrors.set2 = "Set 2 es obligatorio";
     }
 
-    // Validar que haya un ganador en cada set (diferencia de al menos 2 puntos y mínimo 21)
+    // Validar que haya un ganador en cada set (diferencia de al menos 2 puntos y mínimo según configuración)
     const validateSet = (score1, score2, setName) => {
       const s1 = parseInt(score1);
       const s2 = parseInt(score2);
       
+      if (isNaN(s1) || isNaN(s2)) {
+        newErrors[setName] = "Ambos puntajes deben ser números válidos.";
+        return;
+      }
+
       if (s1 === s2) {
         newErrors[setName] = "Debe haber un ganador (diferencia mínima de 2 puntos)";
       } else if (Math.abs(s1 - s2) < 2) {
@@ -63,25 +80,27 @@ export default function MatchResultInput({ match, team1, team2 }) {
       } else {
         const winner = s1 > s2 ? s1 : s2;
         const loser = s1 > s2 ? s2 : s1;
-        if (winner < 21 || (winner === 21 && loser > 19)) {
-          if (winner < 21) {
-            newErrors[setName] = "El ganador debe tener al menos 21 puntos";
-          }
+        if (winner < puntosMinimos) {
+          newErrors[setName] = `El ganador debe tener al menos ${puntosMinimos} puntos`;
+        } else if (winner === puntosMinimos && loser >= puntosMinimos) {
+          // This condition should logically be covered by s1 === s2 or Math.abs(s1-s2) < 2
+          // if pointsMinimos is a common value like 21. However, following the outline strictly.
+          newErrors[setName] = "Diferencia mínima de 2 puntos";
         }
       }
     };
 
-    if (scores.set1_equipo1 && scores.set1_equipo2) {
+    if (scores.set1_equipo1 !== "" && scores.set1_equipo2 !== "") {
       validateSet(scores.set1_equipo1, scores.set1_equipo2, 'set1');
     }
     
-    if (scores.set2_equipo1 && scores.set2_equipo2) {
+    if (scores.set2_equipo1 !== "" && scores.set2_equipo2 !== "") {
       validateSet(scores.set2_equipo1, scores.set2_equipo2, 'set2');
     }
 
     // Set 3 solo se valida si está completo
-    if ((scores.set3_equipo1 || scores.set3_equipo2) && 
-        scores.set3_equipo1 && scores.set3_equipo2) {
+    if ((scores.set3_equipo1 !== "" || scores.set3_equipo2 !== "") && 
+        scores.set3_equipo1 !== "" && scores.set3_equipo2 !== "") {
       validateSet(scores.set3_equipo1, scores.set3_equipo2, 'set3');
     }
 
@@ -287,7 +306,7 @@ export default function MatchResultInput({ match, team1, team2 }) {
 
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm text-gray-600">
-                ℹ️ <strong>Reglas:</strong> Cada set debe tener un ganador con al menos 21 puntos y 2 de diferencia. 
+                ℹ️ <strong>Reglas:</strong> Cada set debe tener un ganador con al menos {puntosMinimos} puntos y 2 de diferencia. 
                 El tercer set es opcional y se juega solo si cada equipo ganó un set.
               </p>
             </div>
