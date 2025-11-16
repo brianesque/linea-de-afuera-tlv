@@ -164,24 +164,80 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
 
     const teams = await base44.entities.Team.filter({ tournament_id: tournamentId });
     const matches = [];
-    let matchNumber = 1;
     const startTime = new Date(tournament.fecha_inicio);
 
     if (tournament.formato === 'todos_contra_todos') {
+      // Crear todas las combinaciones de partidos
+      const allMatches = [];
       for (let i = 0; i < teams.length; i++) {
         for (let j = i + 1; j < teams.length; j++) {
-          const matchTime = new Date(startTime.getTime() + (matchNumber - 1) * tournament.duracion_partido_minutos * 60000);
-          matches.push({
-            tournament_id: tournamentId,
-            equipo1_id: teams[i].id,
-            equipo2_id: teams[j].id,
-            numero_partido: matchNumber,
-            horario_estimado: matchTime.toISOString(),
-            estado: 'pendiente'
+          allMatches.push({
+            team1: teams[i],
+            team2: teams[j]
           });
-          matchNumber++;
         }
       }
+
+      // Algoritmo para ordenar partidos evitando que un equipo juegue 2 veces seguidas
+      const orderedMatches = [];
+      const teamLastPlayed = new Map(); // Stores the index in orderedMatches when a team last played
+      
+      while (allMatches.length > 0) {
+        let bestMatchIndex = -1;
+        let bestScore = -1; // Represents the minimum gap since last played for the teams in a match
+
+        // Search for the best match to add next
+        for (let i = 0; i < allMatches.length; i++) {
+          const match = allMatches[i];
+          const team1LastPlayed = teamLastPlayed.get(match.team1.id) || -Infinity;
+          const team2LastPlayed = teamLastPlayed.get(match.team2.id) || -Infinity;
+          
+          // Calculate how many matches ago these teams played
+          // A higher value means a longer break
+          const minGapSinceLastPlayed = Math.min(
+            orderedMatches.length - team1LastPlayed, // Gap for team1
+            orderedMatches.length - team2LastPlayed  // Gap for team2
+          );
+
+          // Prefer matches where teams haven't played recently (larger gap)
+          if (minGapSinceLastPlayed > bestScore) {
+            bestScore = minGapSinceLastPlayed;
+            bestMatchIndex = i;
+          }
+        }
+
+        // If a best match is found, add it to the ordered list
+        if (bestMatchIndex >= 0) {
+          const selectedMatch = allMatches.splice(bestMatchIndex, 1)[0];
+          orderedMatches.push(selectedMatch);
+          // Update the last played index for the teams
+          teamLastPlayed.set(selectedMatch.team1.id, orderedMatches.length - 1);
+          teamLastPlayed.set(selectedMatch.team2.id, orderedMatches.length - 1);
+        } else {
+          // Fallback: If no "best" match can be found (e.g., all teams have played recently),
+          // just pick the first available match to prevent an infinite loop.
+          // This case should ideally be rare with a good scoring heuristic.
+          if (allMatches.length > 0) {
+            const selectedMatch = allMatches.splice(0, 1)[0];
+            orderedMatches.push(selectedMatch);
+            teamLastPlayed.set(selectedMatch.team1.id, orderedMatches.length - 1);
+            teamLastPlayed.set(selectedMatch.team2.id, orderedMatches.length - 1);
+          }
+        }
+      }
+
+      // Create the match objects with the optimized order
+      orderedMatches.forEach((match, index) => {
+        const matchTime = new Date(startTime.getTime() + index * tournament.duracion_partido_minutos * 60000);
+        matches.push({
+          tournament_id: tournamentId,
+          equipo1_id: match.team1.id,
+          equipo2_id: match.team2.id,
+          numero_partido: index + 1,
+          horario_estimado: matchTime.toISOString(),
+          estado: 'pendiente'
+        });
+      });
     }
 
     if (matches.length > 0) {
