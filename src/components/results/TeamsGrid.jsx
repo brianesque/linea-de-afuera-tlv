@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,17 +20,10 @@ export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId 
   const [isReorganizing, setIsReorganizing] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-    retry: false,
-  });
-
-  const isAdmin = currentUser?.role === 'admin';
-
   const handleReorganize = async () => {
     setIsReorganizing(true);
 
+    // Eliminar equipos y partidos anteriores
     for (const team of teams) {
       await base44.entities.Team.delete(team.id);
     }
@@ -40,18 +33,18 @@ export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId 
       await base44.entities.Match.delete(match.id);
     }
 
+    // Obtener jugadores seleccionados
     const selectedPlayers = allPlayers.filter(p => 
       tournament.jugadores_seleccionados.includes(p.id)
     );
 
     const numTeams = tournament.numero_equipos || Math.floor(selectedPlayers.length / tournament.jugadores_por_equipo);
 
+    // Reorganizar con IA
     const playersData = selectedPlayers.map(p => ({
       id: p.id,
       nombre: p.nombre,
       calificacion: p.calificacion,
-      genero: p.genero,
-      is_captain: tournament.capitanes_ids?.includes(p.id) || false
     }));
 
     const result = await base44.integrations.Core.InvokeLLM({
@@ -63,11 +56,10 @@ Datos:
 - Jugadores disponibles: ${JSON.stringify(playersData)}
 
 Instrucciones:
-1. Los jugadores marcados como "is_captain: true" DEBEN ser capitanes y estar en equipos diferentes.
-2. Crea ${numTeams} equipos equilibrados basándote en las calificaciones (1-5).
-3. IMPORTANTE: Distribuye las mujeres (genero: "femenino") de manera equitativa entre todos los equipos. Cada equipo debe tener aproximadamente la misma cantidad de mujeres.
-4. Distribuye el resto de jugadores para que el promedio de calificación de cada equipo sea lo más similar posible.
-5. Cada equipo debe tener exactamente ${tournament.jugadores_por_equipo} jugadores.
+1. Crea ${numTeams} equipos equilibrados basándote en las calificaciones (1-5).
+2. Distribuye los jugadores para que el promedio de calificación de cada equipo sea lo más similar posible.
+3. Cada equipo debe tener exactamente ${tournament.jugadores_por_equipo} jugadores.
+4. Selecciona un capitán para cada equipo (el jugador con mayor calificación).
 
 Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
       response_json_schema: {
@@ -122,6 +114,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
 
     await base44.entities.Team.bulkCreate(teamsToCreate);
 
+    // Recrear partidos
     const newTeams = await base44.entities.Team.filter({ tournament_id: tournamentId });
     const newMatches = [];
     let matchNumber = 1;
@@ -156,26 +149,26 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
   };
 
   const handleCopyToClipboard = () => {
-    let csv = "Equipo,Jugador,Género,Capitán,Promedio Equipo\n";
-    
+    let text = "EQUIPOS DEL TORNEO\n\n";
     teams.forEach(team => {
       const teamPlayers = team.jugadores_ids
         .map(id => allPlayers.find(p => p.id === id))
         .filter(Boolean);
       
+      text += `${team.nombre} (Promedio: ${team.promedio_calificacion})\n`;
       teamPlayers.forEach(player => {
-        const isCaptain = player.id === team.capitan_id ? "Sí" : "No";
-        const genero = player.genero === 'femenino' ? 'F' : 'M';
-        csv += `"${team.nombre}","${player.nombre}",${genero},${isCaptain},${team.promedio_calificacion}\n`;
+        const isCaptain = player.id === team.capitan_id;
+        text += `  ${isCaptain ? '👑 ' : '- '}${player.nombre} (${player.calificacion}★)\n`;
       });
+      text += '\n';
     });
 
-    navigator.clipboard.writeText(csv);
-    toast.success("¡Copiado al portapapeles en formato CSV!");
+    navigator.clipboard.writeText(text);
+    toast.success("¡Copiado al portapapeles!");
   };
 
   const handleDownloadCSV = () => {
-    let csv = "Equipo,Jugador,Género,Capitán,Promedio Equipo\n";
+    let csv = "Equipo,Jugador,Calificación,Capitán,Promedio Equipo\n";
     
     teams.forEach(team => {
       const teamPlayers = team.jugadores_ids
@@ -184,8 +177,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
       
       teamPlayers.forEach(player => {
         const isCaptain = player.id === team.capitan_id ? "Sí" : "No";
-        const genero = player.genero === 'femenino' ? 'F' : 'M';
-        csv += `"${team.nombre}","${player.nombre}",${genero},${isCaptain},${team.promedio_calificacion}\n`;
+        csv += `"${team.nombre}","${player.nombre}",${player.calificacion},${isCaptain},${team.promedio_calificacion}\n`;
       });
     });
 
@@ -211,7 +203,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                   variant={viewMode === "cards" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("cards")}
-                  className={`rounded-none ${viewMode === "cards" ? "bg-sky-500 text-white" : ""}`}
+                  className="rounded-none"
                 >
                   <LayoutGrid className="w-4 h-4 mr-2" />
                   Cards
@@ -220,7 +212,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                   variant={viewMode === "table" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("table")}
-                  className={`rounded-none ${viewMode === "table" ? "bg-sky-500 text-white" : ""}`}
+                  className="rounded-none"
                 >
                   <Table2 className="w-4 h-4 mr-2" />
                   Tabla
@@ -235,7 +227,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                 onClick={handleCopyToClipboard}
               >
                 <Copy className="w-4 h-4 mr-2" />
-                Copiar CSV
+                Copiar
               </Button>
               <Button
                 variant="outline"
@@ -245,7 +237,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                 <Download className="w-4 h-4 mr-2" />
                 Descargar CSV
               </Button>
-              {isAdmin && tournament?.estado === 'equipos_armados' && (
+              {tournament?.estado === 'equipos_armados' && (
                 <Button
                   size="sm"
                   onClick={handleReorganize}
@@ -286,12 +278,12 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                         <CardTitle className="text-xl font-bold text-gray-900 mb-2">
                           {team.nombre}
                         </CardTitle>
-                        {isAdmin && (
+                        <div className="flex items-center gap-2">
                           <Badge className="bg-sky-500 text-white">
                             <TrendingUp className="w-3 h-3 mr-1" />
                             Promedio: {team.promedio_calificacion}
                           </Badge>
-                        )}
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
@@ -313,17 +305,12 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                               <span className={`font-semibold ${isCaptain ? 'text-amber-900' : 'text-gray-900'}`}>
                                 {player.nombre}
                               </span>
-                              <Badge variant="outline" className="text-xs">
-                                {player.genero === 'femenino' ? 'F' : 'M'}
-                              </Badge>
                             </div>
-                            {isAdmin && (
-                              <div className="flex items-center gap-1">
-                                {[...Array(player.calificacion)].map((_, i) => (
-                                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                ))}
-                              </div>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {[...Array(player.calificacion)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                              ))}
+                            </div>
                           </div>
                         );
                       })}
@@ -342,9 +329,9 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                     <TableRow className="bg-gradient-to-r from-sky-100 to-blue-100">
                       <TableHead className="font-bold">Equipo</TableHead>
                       <TableHead className="font-bold">Jugador</TableHead>
-                      <TableHead className="font-bold">Género</TableHead>
+                      <TableHead className="font-bold">Calificación</TableHead>
                       <TableHead className="font-bold">Rol</TableHead>
-                      {isAdmin && <TableHead className="font-bold">Promedio Equipo</TableHead>}
+                      <TableHead className="font-bold">Promedio Equipo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -366,9 +353,11 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                               {player.nombre}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline">
-                                {player.genero === 'femenino' ? 'F' : 'M'}
-                              </Badge>
+                              <div className="flex gap-1">
+                                {[...Array(player.calificacion)].map((_, i) => (
+                                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                ))}
+                              </div>
                             </TableCell>
                             <TableCell>
                               {isCaptain && (
@@ -378,7 +367,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                                 </Badge>
                               )}
                             </TableCell>
-                            {isAdmin && idx === 0 && (
+                            {idx === 0 && (
                               <TableCell rowSpan={teamPlayers.length} className="font-bold text-sky-600 bg-sky-50">
                                 {team.promedio_calificacion}
                               </TableCell>
