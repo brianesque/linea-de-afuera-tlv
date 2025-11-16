@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Trophy, Save } from "lucide-react";
+import { ArrowLeft, Trophy, Save, Copy } from "lucide-react";
 
 export default function CreateTournament() {
   const navigate = useNavigate();
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [formData, setFormData] = useState({
     nombre: "",
+    numero_equipos: 4,
     jugadores_por_equipo: 4,
     cervezas_por_persona: 3,
     snacks: true,
@@ -34,12 +36,37 @@ export default function CreateTournament() {
     estado: "configuracion"
   });
 
+  const { data: templates } = useQuery({
+    queryKey: ['templates'],
+    queryFn: () => base44.entities.TournamentTemplate.list('-created_date'),
+    initialData: [],
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Tournament.create(data),
     onSuccess: (tournament) => {
       navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`));
     },
   });
+
+  const handleTemplateSelect = (templateId) => {
+    setSelectedTemplateId(templateId);
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setFormData({
+        ...formData,
+        template_id: templateId,
+        jugadores_por_equipo: template.jugadores_por_equipo,
+        cervezas_por_persona: template.cervezas_por_persona,
+        snacks: template.snacks,
+        bebidas_por_persona: template.bebidas_por_persona,
+        formato: template.formato,
+        criterio_ganador: template.criterio_ganador,
+        criterio_empate: template.criterio_empate,
+        duracion_partido_minutos: template.duracion_partido_minutos
+      });
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -66,6 +93,37 @@ export default function CreateTournament() {
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
+            {/* Plantilla */}
+            {templates.length > 0 && (
+              <Card className="border-2 border-purple-100 shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-purple-100 to-pink-100">
+                  <CardTitle className="flex items-center gap-2">
+                    <Copy className="w-5 h-5 text-purple-600" />
+                    Usar Plantilla (Opcional)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <Label htmlFor="template">Selecciona una plantilla guardada</Label>
+                  <Select
+                    value={selectedTemplateId}
+                    onValueChange={handleTemplateSelect}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sin plantilla - Configuración manual" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin plantilla</SelectItem>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Información Básica */}
             <Card className="border-2 border-sky-100 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-sky-100 to-blue-100">
@@ -86,7 +144,7 @@ export default function CreateTournament() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="fecha_inicio">Fecha y Hora de Inicio *</Label>
                     <Input
@@ -94,6 +152,19 @@ export default function CreateTournament() {
                       type="datetime-local"
                       value={formData.fecha_inicio}
                       onChange={(e) => setFormData({ ...formData, fecha_inicio: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="numero_equipos">Número de Equipos *</Label>
+                    <Input
+                      id="numero_equipos"
+                      type="number"
+                      min="2"
+                      max="16"
+                      value={formData.numero_equipos}
+                      onChange={(e) => setFormData({ ...formData, numero_equipos: parseInt(e.target.value) })}
                       required
                     />
                   </div>
@@ -232,7 +303,7 @@ export default function CreateTournament() {
                     <Label htmlFor="snacks" className="text-base font-semibold">
                       ¿Incluir Snacks?
                     </Label>
-                    <p className="text-sm text-gray-600">Papas fritas, frutos secos, etc.</p>
+                    <p className="text-sm text-gray-600">₪15 por equipo (papas, frutos secos, etc.)</p>
                   </div>
                   <Switch
                     id="snacks"
