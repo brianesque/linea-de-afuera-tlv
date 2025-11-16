@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack-react/query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,10 +38,8 @@ export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId 
   const handleReorganize = async () => {
     setIsReorganizing(true);
 
-    // Guardar capitanes actuales
     const previousCaptains = teams.map(team => team.capitan_id);
 
-    // Eliminar equipos y partidos anteriores
     for (const team of teams) {
       await base44.entities.Team.delete(team.id);
     }
