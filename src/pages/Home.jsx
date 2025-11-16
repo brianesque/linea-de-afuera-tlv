@@ -36,10 +36,10 @@ export default function Home() {
 
   const getEstadoBadge = (estado) => {
     const estados = {
-      configuracion: { label: 'Configuración', class: 'bg-yellow-100 text-yellow-800' },
+      configuracion: { label: 'Configuración', class: 'bg-amber-100 text-amber-800' },
       equipos_armados: { label: 'Equipos Armados', class: 'bg-blue-100 text-blue-800' },
       en_curso: { label: 'En Curso', class: 'bg-green-100 text-green-800' },
-      finalizado: { label: 'Finalizado', class: 'bg-gray-100 text-gray-800' }
+      finalizado: { label: 'Finalizado', class: 'bg-slate-100 text-slate-800' }
     };
     return estados[estado] || estados.configuracion;
   };
@@ -48,37 +48,37 @@ export default function Home() {
     const estadoBadge = getEstadoBadge(tournament.estado);
     return (
       <Link to={createPageUrl(`TournamentDetail?id=${tournament.id}`)}>
-        <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-2 border-orange-100 hover:border-orange-300">
-          <CardHeader className="bg-gradient-to-br from-sky-100 to-orange-100 border-b border-orange-200">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white border border-slate-200 hover:border-slate-300">
+          <CardHeader className="bg-slate-50 border-b border-slate-200 pb-3">
             <div className="flex items-start justify-between">
-              <CardTitle className="text-xl font-bold text-gray-900">
+              <CardTitle className="text-base md:text-lg font-bold text-slate-900">
                 {tournament.nombre}
               </CardTitle>
-              <Trophy className="w-6 h-6 text-orange-500" />
+              <Trophy className="w-5 h-5 text-slate-600" />
             </div>
             <div className="mt-2">
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${estadoBadge.class}`}>
+              <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${estadoBadge.class}`}>
                 {estadoBadge.label}
               </span>
             </div>
           </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm text-gray-700">
-                <Calendar className="w-4 h-4 text-sky-600" />
-                <span>
+          <CardContent className="pt-3">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs text-slate-700">
+                <Calendar className="w-3.5 h-3.5 text-slate-600" />
+                <span className="truncate">
                   {format(new Date(tournament.fecha_inicio), "d 'de' MMMM, yyyy • HH:mm", { locale: es })}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-700">
-                <Users className="w-4 h-4 text-orange-600" />
+              <div className="flex items-center gap-2 text-xs text-slate-700">
+                <Users className="w-3.5 h-3.5 text-slate-600" />
                 <span>
                   {tournament.jugadores_por_equipo} jugadores por equipo
                 </span>
               </div>
-              <div className="pt-2 border-t border-gray-200">
-                <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">
-                  Formato: {tournament.formato === 'todos_contra_todos' ? 'Todos contra todos' : 'Grupos'}
+              <div className="pt-2 border-t border-slate-200">
+                <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
+                  {tournament.formato === 'todos_contra_todos' ? 'Todos contra todos' : 'Grupos'}
                 </p>
               </div>
             </div>
@@ -89,25 +89,25 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 via-blue-600 to-orange-500 p-8 md:p-12 mb-8 shadow-2xl">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 p-6 md:p-10 mb-6 shadow-lg">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=1200')] opacity-10 bg-cover bg-center" />
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <Waves className="w-10 h-10 text-white" />
-              <Trophy className="w-12 h-12 text-yellow-300" />
+            <div className="flex items-center gap-2 mb-3">
+              <Waves className="w-7 h-7 md:w-8 md:h-8 text-white" />
+              <Trophy className="w-8 h-8 md:w-10 md:h-10 text-amber-400" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+            <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">
               Línea De Afuera - TLV
             </h1>
-            <p className="text-xl text-white/90 mb-6 max-w-2xl">
-              {isAdmin ? "Organiza torneos de beach vóley con equipos equilibrados por IA" : "Consulta torneos y estadísticas de beach vóley"}
+            <p className="text-sm md:text-lg text-white/90 mb-4 max-w-2xl">
+              {isAdmin ? "Organiza torneos de beach vóley" : "Consulta torneos y estadísticas"}
             </p>
             {isAdmin && (
               <Link to={createPageUrl("CreateTournament")}>
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-orange-50 font-semibold shadow-lg">
-                  <Plus className="w-5 h-5 mr-2" />
+                <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100 font-semibold shadow-lg text-sm">
+                  <Plus className="w-4 h-4 mr-2" />
                   Crear Nuevo Torneo
                 </Button>
               </Link>
@@ -115,11 +115,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Torneos en Curso */}
         {enCurso.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Torneos en Curso</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-900 mb-3">Torneos en Curso</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {enCurso.map((tournament) => (
                 <TournamentCard key={tournament.id} tournament={tournament} />
               ))}
@@ -127,34 +126,33 @@ export default function Home() {
           </div>
         )}
 
-        {/* Torneos Finalizados */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Torneos Pasados</h2>
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-slate-900 mb-3">Torneos Pasados</h2>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="animate-pulse">
-                <CardHeader className="h-32 bg-gray-200" />
-                <CardContent className="h-24 bg-gray-100" />
+                <CardHeader className="h-28 bg-slate-100" />
+                <CardContent className="h-20 bg-slate-50" />
               </Card>
             ))}
           </div>
         ) : finalizados.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-300 bg-white/50">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <Trophy className="w-16 h-16 text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No hay torneos finalizados todavía
+          <Card className="border-2 border-dashed border-slate-300 bg-white">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Trophy className="w-14 h-14 text-slate-400 mb-3" />
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                No hay torneos finalizados
               </h3>
-              <p className="text-gray-600 mb-6 text-center max-w-md">
+              <p className="text-slate-600 text-center text-sm max-w-md">
                 Los torneos completados aparecerán aquí
               </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {finalizados.map((tournament) => (
               <TournamentCard key={tournament.id} tournament={tournament} />
             ))}

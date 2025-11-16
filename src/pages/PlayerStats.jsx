@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Trophy, Target, TrendingUp, Award, BarChart3 } from "lucide-react";
+import { Search, Trophy, Award, BarChart3 } from "lucide-react";
 
 export default function PlayerStats() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,8 +51,86 @@ export default function PlayerStats() {
     let campeonatos = 0;
 
     playerTeams.forEach(team => {
+      const teamTournament = tournaments.find(t => t.id === team.tournament_id);
+      
+      // Contar campeonatos ganados
+      if (teamTournament?.estado === 'finalizado') {
+        const finalMatch = matches.find(m => 
+          m.tournament_id === team.tournament_id && 
+          m.fase === 'final' && 
+          m.estado === 'finalizado'
+        );
+
+        if (finalMatch) {
+          const winnerId = finalMatch.sets_equipo1 > finalMatch.sets_equipo2 ? 
+            finalMatch.equipo1_id : finalMatch.equipo2_id;
+          if (winnerId === team.id) {
+            campeonatos++;
+          }
+        } else {
+          // Si no hay final, buscar al ganador por ranking
+          const tournamentTeams = teams.filter(t => t.tournament_id === team.tournament_id);
+          const tournamentMatches = matches.filter(m => 
+            m.tournament_id === team.tournament_id && 
+            m.estado === 'finalizado' &&
+            m.fase === 'fase_grupos'
+          );
+
+          const stats = tournamentTeams.map(t => {
+            const tMatches = tournamentMatches.filter(m => 
+              m.equipo1_id === t.id || m.equipo2_id === t.id
+            );
+
+            let pg = 0, sa = 0, sc = 0, pa = 0, pc = 0;
+
+            tMatches.forEach(match => {
+              const isTeam1 = match.equipo1_id === t.id;
+              const teamSets = isTeam1 ? match.sets_equipo1 : match.sets_equipo2;
+              const opponentSets = isTeam1 ? match.sets_equipo2 : match.sets_equipo1;
+              const teamPoints = isTeam1 ? match.puntos_equipo1 : match.puntos_equipo2;
+              const opponentPoints = isTeam1 ? match.puntos_equipo2 : match.puntos_equipo1;
+
+              sa += teamSets || 0;
+              sc += opponentSets || 0;
+              pa += teamPoints || 0;
+              pc += opponentPoints || 0;
+
+              if (teamSets > opponentSets) pg++;
+            });
+
+            return {
+              teamId: t.id,
+              pg,
+              ds: sa - sc,
+              pa,
+              dp: pa - pc
+            };
+          });
+
+          stats.sort((a, b) => {
+            if (teamTournament.criterio_ganador === 'sets') {
+              if (b.ds !== a.ds) return b.ds - a.ds;
+            } else {
+              if (b.pg !== a.pg) return b.pg - a.pg;
+            }
+            if (teamTournament.criterio_empate === 'diferencia_puntos') {
+              if (b.dp !== a.dp) return b.dp - a.dp;
+            } else {
+              if (b.pa !== a.pa) return b.pa - a.pa;
+            }
+            return b.ds - a.ds;
+          });
+
+          if (stats[0]?.teamId === team.id) {
+            campeonatos++;
+          }
+        }
+      }
+
+      // Contar partidos y estadísticas
       const teamMatches = matches.filter(m => 
-        (m.equipo1_id === team.id || m.equipo2_id === team.id) && m.estado === 'finalizado'
+        (m.equipo1_id === team.id || m.equipo2_id === team.id) && 
+        m.estado === 'finalizado'
       );
 
       teamMatches.forEach(match => {
@@ -92,88 +170,88 @@ export default function PlayerStats() {
   );
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-            <BarChart3 className="w-8 h-8 text-sky-600" />
-            Estadísticas de Jugadores
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+            <BarChart3 className="w-6 h-6 md:w-7 md:h-7 text-slate-700" />
+            <span>Estadísticas</span>
           </h1>
-          <p className="text-gray-600">
-            Rendimiento detallado de todos los jugadores
+          <p className="text-sm text-slate-600">
+            Rendimiento de jugadores
           </p>
         </div>
 
-        <Card className="mb-6 border-2 border-sky-100 shadow-lg">
-          <CardContent className="pt-6">
+        <Card className="mb-4 border border-slate-200 shadow-sm">
+          <CardContent className="pt-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="Buscar jugador..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-12 text-lg"
+                className="pl-9 h-10 text-sm border-slate-300"
               />
             </div>
           </CardContent>
         </Card>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i} className="animate-pulse">
-                <CardContent className="h-64 bg-gray-100" />
+                <CardContent className="h-56 bg-slate-100" />
               </Card>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredPlayers.map((player) => {
               const stats = getPlayerStats(player);
               return (
-                <Card key={player.id} className="border-2 border-sky-100 hover:shadow-xl transition-all">
-                  <CardHeader className="bg-gradient-to-br from-sky-100 to-blue-100 border-b-2 border-sky-200">
+                <Card key={player.id} className="border border-slate-200 hover:shadow-md transition-shadow">
+                  <CardHeader className="bg-slate-50 border-b border-slate-200 pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-xl font-bold text-gray-900">
+                      <CardTitle className="text-base font-bold text-slate-900">
                         {player.nombre}
                       </CardTitle>
-                      <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}>
+                      <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800 text-xs" : "bg-blue-100 text-blue-800 text-xs"}>
                         {player.genero === "femenino" ? "F" : "M"}
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                  <CardContent className="pt-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
                       <div className="flex items-center gap-2">
-                        <Trophy className="w-5 h-5 text-orange-500" />
+                        <Trophy className="w-4 h-4 text-slate-600" />
                         <div>
-                          <p className="text-xs text-gray-500">Torneos</p>
-                          <p className="text-xl font-bold text-gray-900">{stats.torneosParticipados}</p>
+                          <p className="text-xs text-slate-500">Torneos</p>
+                          <p className="text-lg font-bold text-slate-900">{stats.torneosParticipados}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Award className="w-5 h-5 text-yellow-500" />
+                        <Award className="w-4 h-4 text-amber-600" />
                         <div>
-                          <p className="text-xs text-gray-500">Campeonatos</p>
-                          <p className="text-xl font-bold text-gray-900">{stats.campeonatos}</p>
+                          <p className="text-xs text-slate-500">Campeonatos</p>
+                          <p className="text-lg font-bold text-slate-900">{stats.campeonatos}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-gray-200">
-                      <div className="space-y-3">
+                    <div className="pt-3 border-t border-slate-200">
+                      <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Partidos Jugados</span>
-                          <span className="font-semibold text-gray-900">{stats.partidosJugados}</span>
+                          <span className="text-xs text-slate-600">Partidos Jugados</span>
+                          <span className="font-semibold text-slate-900 text-sm">{stats.partidosJugados}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Partidos Ganados</span>
-                          <span className="font-semibold text-green-600">{stats.partidosGanados}</span>
+                          <span className="text-xs text-slate-600">Partidos Ganados</span>
+                          <span className="font-semibold text-green-700 text-sm">{stats.partidosGanados}</span>
                         </div>
                         {stats.partidosJugados > 0 && (
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">Win Rate</span>
-                            <Badge className="bg-green-100 text-green-800">
+                            <span className="text-xs text-slate-600">Win Rate</span>
+                            <Badge className="bg-green-100 text-green-800 text-xs">
                               {((stats.partidosGanados / stats.partidosJugados) * 100).toFixed(0)}%
                             </Badge>
                           </div>
@@ -181,17 +259,17 @@ export default function PlayerStats() {
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-gray-200">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">Sets</span>
-                          <span className="font-semibold">
+                    <div className="pt-3 border-t border-slate-200">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-600">Sets</span>
+                          <span className="font-semibold text-slate-900">
                             {stats.setsAFavor} - {stats.setsEnContra}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">Puntos</span>
-                          <span className="font-semibold">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-600">Puntos</span>
+                          <span className="font-semibold text-slate-900">
                             {stats.puntosAFavor} - {stats.puntosEnContra}
                           </span>
                         </div>

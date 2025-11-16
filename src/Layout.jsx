@@ -77,38 +77,38 @@ export default function Layout({ children, currentPageName }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-sky-50">
-        <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-16 h-16 border-4 border-slate-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-amber-50 via-orange-50 to-sky-50">
+      <div className="min-h-screen flex w-full bg-gray-50">
         <style>{`
           :root {
-            --primary: 38 92 255;
+            --primary: 15 23 42;
             --primary-foreground: 255 255 255;
           }
         `}</style>
         
-        <Sidebar className="border-r border-orange-200/50 bg-white/80 backdrop-blur-sm">
-          <SidebarHeader className="border-b border-orange-200/50 p-6">
+        <Sidebar className="border-r border-gray-200 bg-white">
+          <SidebarHeader className="border-b border-gray-200 p-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center shadow-sm">
                 <Trophy className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-gray-900 text-lg">Línea De Afuera</h2>
-                <p className="text-xs text-orange-600 font-medium">TLV Beach Vóley</p>
+                <h2 className="font-bold text-slate-900 text-lg">Línea De Afuera</h2>
+                <p className="text-xs text-slate-600 font-medium">TLV Beach Vóley</p>
               </div>
             </div>
           </SidebarHeader>
           
           <SidebarContent className="p-3">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">
+              <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
                 Navegación
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -117,8 +117,8 @@ export default function Layout({ children, currentPageName }) {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className={`hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 rounded-lg mb-1 ${
-                          location.pathname === item.url ? 'bg-gradient-to-r from-orange-100 to-sky-100 text-orange-700 font-medium' : ''
+                        className={`hover:bg-slate-100 hover:text-slate-900 transition-colors duration-200 rounded-lg mb-1 ${
+                          location.pathname === item.url ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
@@ -133,17 +133,17 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-orange-200/50 p-4">
+          <SidebarFooter className="border-t border-gray-200 p-4">
             <div className="space-y-3">
               {user ? (
                 <>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 bg-slate-600 rounded-full flex items-center justify-center text-white font-bold">
                       {user.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 text-sm truncate">{user.email}</p>
-                      <Badge className={isAdmin ? "bg-purple-100 text-purple-800" : "bg-gray-100 text-gray-800"}>
+                      <p className="font-medium text-slate-900 text-sm truncate">{user.email}</p>
+                      <Badge className={isAdmin ? "bg-slate-700 text-white" : "bg-slate-200 text-slate-700"}>
                         {isAdmin ? "Administrador" : "Usuario"}
                       </Badge>
                     </div>
@@ -152,7 +152,7 @@ export default function Layout({ children, currentPageName }) {
                     variant="outline"
                     size="sm"
                     onClick={handleLogout}
-                    className="w-full"
+                    className="w-full border-slate-300 hover:bg-slate-50"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Cerrar Sesión
@@ -160,15 +160,15 @@ export default function Layout({ children, currentPageName }) {
                 </>
               ) : (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 p-2 bg-orange-50 rounded-lg">
-                    <Users className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm font-medium text-orange-800">Modo Invitado</span>
+                  <div className="flex items-center gap-2 p-2 bg-slate-100 rounded-lg">
+                    <Users className="w-4 h-4 text-slate-600" />
+                    <span className="text-sm font-medium text-slate-700">Modo Invitado</span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleLogin}
-                    className="w-full"
+                    className="w-full border-slate-300 hover:bg-slate-50"
                   >
                     Iniciar Sesión Admin
                   </Button>
@@ -179,12 +179,12 @@ export default function Layout({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className="bg-white/80 backdrop-blur-sm border-b border-orange-200/50 px-6 py-4 lg:hidden">
+          <header className="bg-white border-b border-gray-200 px-6 py-4 lg:hidden">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-orange-100 p-2 rounded-lg transition-colors duration-200" />
+              <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200" />
               <div className="flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-sky-600" />
-                <h1 className="text-lg font-bold text-gray-900">Línea De Afuera</h1>
+                <Trophy className="w-6 h-6 text-slate-700" />
+                <h1 className="text-lg font-bold text-slate-900">Línea De Afuera</h1>
               </div>
             </div>
           </header>
