@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -11,11 +11,28 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import TeamsGrid from "../components/results/TeamsGrid";
 import MatchSchedule from "../components/results/MatchSchedule";
+import StandingsTable from "../components/results/StandingsTable";
+import FinishTournamentDialog from "../components/results/FinishTournamentDialog";
 
 export default function TournamentDetail() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const tournamentId = urlParams.get('id');
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        setUser(null);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const isAdmin = user?.role === 'admin';
 
   const { data: tournament, isLoading } = useQuery({
     queryKey: ['tournament', tournamentId],
@@ -98,7 +115,7 @@ export default function TournamentDetail() {
             <h1 className="text-3xl font-bold text-gray-900">{tournament.nombre}</h1>
             <p className="text-gray-600">Detalles y configuración del torneo</p>
           </div>
-          {tournament.estado === 'configuracion' && (
+          {tournament.estado === 'configuracion' && isAdmin && (
             <Button
               size="lg"
               className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
@@ -108,14 +125,22 @@ export default function TournamentDetail() {
               Organizar Equipos
             </Button>
           )}
+          {(tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados') && isAdmin && (
+            <FinishTournamentDialog 
+              tournament={tournament} 
+              matches={matches}
+              onFinish={() => navigate(createPageUrl("Home"))}
+            />
+          )}
         </div>
 
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white border-2 border-sky-100 p-1">
+          <TabsList className="grid w-full grid-cols-5 bg-white border-2 border-sky-100 p-1">
             <TabsTrigger value="info">Información</TabsTrigger>
             <TabsTrigger value="participants">Participantes</TabsTrigger>
             {(tournament.estado === 'equipos_armados' || tournament.estado === 'en_curso' || tournament.estado === 'finalizado') && (
               <>
+                <TabsTrigger value="standings">Posiciones</TabsTrigger>
                 <TabsTrigger value="teams">Equipos</TabsTrigger>
                 <TabsTrigger value="fixture">Fixture</TabsTrigger>
               </>
@@ -272,6 +297,14 @@ export default function TournamentDetail() {
 
           {(tournament.estado === 'equipos_armados' || tournament.estado === 'en_curso' || tournament.estado === 'finalizado') && (
             <>
+              <TabsContent value="standings">
+                <StandingsTable 
+                  teams={teams}
+                  matches={matches}
+                  tournament={tournament}
+                />
+              </TabsContent>
+
               <TabsContent value="teams">
                 <TeamsGrid 
                   teams={teams} 
@@ -286,6 +319,7 @@ export default function TournamentDetail() {
                   matches={matches} 
                   teams={teams} 
                   tournament={tournament}
+                  isAdmin={isAdmin}
                 />
               </TabsContent>
             </>
