@@ -6,7 +6,7 @@ import OrganizeTeams from './pages/OrganizeTeams';
 import TournamentResults from './pages/TournamentResults';
 import AdminPanel from './pages/AdminPanel';
 import PlayerStats from './pages/PlayerStats';
-import Layout from './Layout.jsx';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -23,5 +23,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "Home",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };

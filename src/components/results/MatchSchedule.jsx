@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CalendarDays, Copy, Download, LayoutGrid, Table2 } from "lucide-react";
+import { Clock, Calendar, Download, Copy, LayoutGrid, Table2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -14,37 +14,45 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import MatchResultInput from "./MatchResultInput";
 
-export default function MatchSchedule({ matches, teams, tournament }) {
+export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
   const [viewMode, setViewMode] = useState("cards");
 
   const getTeamName = (teamId) => {
     const team = teams.find(t => t.id === teamId);
-    return team?.nombre || "Equipo";
+    return team ? team.nombre : "Equipo no encontrado";
+  };
+
+  const getEstadoBadge = (estado) => {
+    const estados = {
+      pendiente: { label: 'Pendiente', class: 'bg-yellow-100 text-yellow-800' },
+      en_juego: { label: 'En Juego', class: 'bg-blue-100 text-blue-800' },
+      finalizado: { label: 'Finalizado', class: 'bg-green-100 text-green-800' }
+    };
+    return estados[estado] || estados.pendiente;
   };
 
   const handleCopyToClipboard = () => {
-    let csv = "Número_Partido,Equipo_1,Equipo_2,Horario\n";
-    
+    let csv = "Partido,Equipo 1,Equipo 2,Hora Estimada\n";
     matches.forEach(match => {
-      const team1 = getTeamName(match.equipo1_id);
-      const team2 = getTeamName(match.equipo2_id);
-      const horario = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
-      csv += `${match.numero_partido},"${team1}","${team2}",${horario}\n`;
+      const team1Name = getTeamName(match.equipo1_id);
+      const team2Name = getTeamName(match.equipo2_id);
+      const time = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
+      csv += `${match.numero_partido},"${team1Name}","${team2Name}",${time}\n`;
     });
 
     navigator.clipboard.writeText(csv);
-    toast.success("¡CSV copiado al portapapeles!");
+    toast.success("¡Fixture copiado al portapapeles!");
   };
 
   const handleDownloadCSV = () => {
-    let csv = "Número_Partido,Equipo_1,Equipo_2,Horario\n";
-    
+    let csv = "Partido,Equipo 1,Equipo 2,Hora Estimada\n";
     matches.forEach(match => {
-      const team1 = getTeamName(match.equipo1_id);
-      const team2 = getTeamName(match.equipo2_id);
-      const horario = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
-      csv += `${match.numero_partido},"${team1}","${team2}",${horario}\n`;
+      const team1Name = getTeamName(match.equipo1_id);
+      const team2Name = getTeamName(match.equipo2_id);
+      const time = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
+      csv += `${match.numero_partido},"${team1Name}","${team2Name}",${time}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -55,8 +63,12 @@ export default function MatchSchedule({ matches, teams, tournament }) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("¡CSV descargado!");
+    toast.success("¡Fixture descargado!");
   };
+
+  const totalDuration = matches.length * (tournament.duracion_partido_minutos || 30);
+  const hours = Math.floor(totalDuration / 60);
+  const minutes = totalDuration % 60;
 
   return (
     <div className="space-y-4">
@@ -86,145 +98,152 @@ export default function MatchSchedule({ matches, teams, tournament }) {
               </div>
             </div>
 
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyToClipboard}
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copiar CSV
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadCSV}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Descargar CSV
-              </Button>
+            <div className="flex gap-2 flex-wrap items-center">
+              <div className="flex items-center gap-2 text-sm text-gray-600 bg-orange-50 px-3 py-2 rounded-lg">
+                <Clock className="w-4 h-4" />
+                <span>Duración estimada: {hours}h {minutes}m</span>
+              </div>
+              {isAdmin && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyToClipboard}
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copiar CSV
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownloadCSV}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Descargar CSV
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-2 border-orange-100 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-orange-100 to-amber-100">
-          <CardTitle className="flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-orange-600" />
-            Cronograma de Partidos
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          {matches.length === 0 ? (
-            <div className="text-center py-12">
-              <CalendarDays className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No hay partidos programados todavía</p>
-            </div>
-          ) : viewMode === "cards" ? (
-            <div className="space-y-4">
-              {matches.map((match) => (
-                <Card key={match.id} className="border-2 border-sky-100 bg-gradient-to-r from-white to-sky-50">
-                  <CardContent className="pt-4">
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                      <div className="flex items-center gap-2 md:w-32">
-                        <Badge className="bg-sky-500 text-white font-bold">
-                          Partido {match.numero_partido}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center justify-center gap-4">
-                          <div className="flex-1 text-right">
-                            <p className="font-bold text-gray-900 text-lg">
-                              {getTeamName(match.equipo1_id).split(' - ')[1] || getTeamName(match.equipo1_id)}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {getTeamName(match.equipo1_id).split(' - ')[0]}
-                            </p>
-                          </div>
-                          
-                          <div className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg">
-                            <span className="text-white font-bold text-xl">VS</span>
-                          </div>
-                          
-                          <div className="flex-1 text-left">
-                            <p className="font-bold text-gray-900 text-lg">
-                              {getTeamName(match.equipo2_id).split(' - ')[1] || getTeamName(match.equipo2_id)}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {getTeamName(match.equipo2_id).split(' - ')[0]}
-                            </p>
-                          </div>
+      {viewMode === "cards" ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {matches.map((match) => {
+            const estadoBadge = getEstadoBadge(match.estado);
+            const team1 = teams.find(t => t.id === match.equipo1_id);
+            const team2 = teams.find(t => t.id === match.equipo2_id);
+
+            return (
+              <Card key={match.id} className="border-2 border-orange-100 hover:shadow-lg transition-all">
+                <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Partido #{match.numero_partido}</CardTitle>
+                    <Badge className={estadoBadge.class}>{estadoBadge.label}</Badge>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Calendar className="w-4 h-4" />
+                    <span>{format(new Date(match.horario_estimado), "HH:mm", { locale: es })} hs</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-sky-50 rounded-lg">
+                      <span className="font-semibold text-gray-900">{getTeamName(match.equipo1_id)}</span>
+                      {match.estado === 'finalizado' && (
+                        <div className="text-right">
+                          <Badge className="bg-sky-600 text-white text-lg px-3 py-1">
+                            {match.sets_equipo1}
+                          </Badge>
+                          <p className="text-xs text-gray-500 mt-1">{match.puntos_equipo1} pts</p>
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 md:w-48 text-right">
-                        <Clock className="w-4 h-4 text-orange-600" />
-                        <span className="text-sm font-medium text-gray-700">
-                          {format(new Date(match.horario_estimado), "HH:mm", { locale: es })} hs
-                        </span>
-                      </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
+                    
+                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                      <span className="font-semibold text-gray-900">{getTeamName(match.equipo2_id)}</span>
+                      {match.estado === 'finalizado' && (
+                        <div className="text-right">
+                          <Badge className="bg-orange-600 text-white text-lg px-3 py-1">
+                            {match.sets_equipo2}
+                          </Badge>
+                          <p className="text-xs text-gray-500 mt-1">{match.puntos_equipo2} pts</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {isAdmin && tournament?.estado !== 'finalizado' && (
+                    <div className="pt-2 border-t border-gray-200">
+                      <MatchResultInput match={match} team1={team1} team2={team2} />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <Card className="border-2 border-orange-100">
+          <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gradient-to-r from-orange-100 to-amber-100">
                     <TableHead className="font-bold">#</TableHead>
                     <TableHead className="font-bold">Equipo 1</TableHead>
-                    <TableHead className="font-bold text-center">VS</TableHead>
                     <TableHead className="font-bold">Equipo 2</TableHead>
-                    <TableHead className="font-bold">Horario</TableHead>
+                    <TableHead className="font-bold">Hora</TableHead>
+                    <TableHead className="font-bold">Estado</TableHead>
+                    <TableHead className="font-bold text-center">Resultado</TableHead>
+                    {isAdmin && tournament?.estado !== 'finalizado' && (
+                      <TableHead className="font-bold">Acciones</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {matches.map((match) => (
-                    <TableRow key={match.id} className="hover:bg-orange-50">
-                      <TableCell className="font-bold text-sky-600">
-                        {match.numero_partido}
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        {getTeamName(match.equipo1_id)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge className="bg-orange-500">VS</Badge>
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        {getTeamName(match.equipo2_id)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-orange-600" />
-                          {format(new Date(match.horario_estimado), "HH:mm", { locale: es })} hs
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {matches.map((match) => {
+                    const estadoBadge = getEstadoBadge(match.estado);
+                    const team1 = teams.find(t => t.id === match.equipo1_id);
+                    const team2 = teams.find(t => t.id === match.equipo2_id);
+
+                    return (
+                      <TableRow key={match.id}>
+                        <TableCell className="font-semibold">{match.numero_partido}</TableCell>
+                        <TableCell>{getTeamName(match.equipo1_id)}</TableCell>
+                        <TableCell>{getTeamName(match.equipo2_id)}</TableCell>
+                        <TableCell>
+                          {format(new Date(match.horario_estimado), "HH:mm", { locale: es })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={estadoBadge.class}>{estadoBadge.label}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {match.estado === 'finalizado' ? (
+                            <div className="flex items-center justify-center gap-3">
+                              <Badge className="bg-sky-600 text-white">{match.sets_equipo1}</Badge>
+                              <span className="text-gray-400">-</span>
+                              <Badge className="bg-orange-600 text-white">{match.sets_equipo2}</Badge>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
+                        {isAdmin && tournament?.estado !== 'finalizado' && (
+                          <TableCell>
+                            <MatchResultInput match={match} team1={team1} team2={team2} />
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
-          )}
-          
-          {matches.length > 0 && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border-2 border-orange-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-gray-900">Duración total estimada</p>
-                  <p className="text-sm text-gray-600">Basado en {tournament?.duracion_partido_minutos} min por partido</p>
-                </div>
-                <p className="text-2xl font-bold text-orange-600">
-                  {matches.length * (tournament?.duracion_partido_minutos || 30)} min
-                </p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
