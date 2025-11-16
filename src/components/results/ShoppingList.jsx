@@ -1,23 +1,25 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShoppingCart, Beer, Droplets, Cookie, DollarSign, TrendingUp } from "lucide-react";
+import { ShoppingCart, Beer, Droplets, Cookie, DollarSign, TrendingUp, Package } from "lucide-react";
 
-export default function ShoppingList({ tournament, totalParticipants }) {
-  const [precioUnitarioCerveza, setPrecioUnitarioCerveza] = useState(8);
+export default function ShoppingList({ tournament, totalParticipants, numTeams }) {
+  const precioUnitarioCerveza = 7;
   const [precioUnitarioBebida, setPrecioUnitarioBebida] = useState(5);
-  const [precioSnacks, setPrecioSnacks] = useState(50);
-
+  const snackPorEquipo = 15;
+  
   const totalCervezas = Math.ceil(totalParticipants * (tournament?.cervezas_por_persona || 0));
+  const bolsasHielo = Math.ceil(totalCervezas / 20);
+  const precioHielo = 10;
   const totalBebidas = Math.ceil(totalParticipants * (tournament?.bebidas_por_persona || 0));
   
   const costoCervezas = totalCervezas * precioUnitarioCerveza;
   const costoBebidas = totalBebidas * precioUnitarioBebida;
-  const costoSnacks = tournament?.snacks ? precioSnacks : 0;
+  const costoSnacks = tournament?.snacks ? (snackPorEquipo * numTeams) : 0;
+  const costoHielo = bolsasHielo * precioHielo;
   
-  const subtotal = costoCervezas + costoBebidas + costoSnacks;
+  const subtotal = costoCervezas + costoBebidas + costoSnacks + costoHielo;
   const margenExtra = subtotal * 0.05;
   const totalFinal = subtotal + margenExtra;
 
@@ -32,8 +34,16 @@ export default function ShoppingList({ tournament, totalParticipants }) {
         </CardHeader>
         <CardContent className="pt-6">
           <div className="mb-6 p-4 bg-gradient-to-r from-sky-50 to-blue-50 rounded-lg border-2 border-sky-200">
-            <p className="text-sm text-gray-600 mb-1">Participantes totales</p>
-            <p className="text-3xl font-bold text-sky-600">{totalParticipants} personas</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Participantes totales</p>
+                <p className="text-3xl font-bold text-sky-600">{totalParticipants} personas</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Equipos</p>
+                <p className="text-3xl font-bold text-orange-600">{numTeams}</p>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -52,22 +62,37 @@ export default function ShoppingList({ tournament, totalParticipants }) {
                   </p>
                 </div>
                 <div>
-                  <Label htmlFor="precio-cerveza" className="text-sm text-gray-600">
-                    Precio Unitario (₪)
-                  </Label>
-                  <Input
-                    id="precio-cerveza"
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    value={precioUnitarioCerveza}
-                    onChange={(e) => setPrecioUnitarioCerveza(parseFloat(e.target.value) || 0)}
-                    className="mt-1"
-                  />
+                  <Label className="text-sm text-gray-600">Precio Unitario</Label>
+                  <p className="text-xl font-semibold text-gray-900">₪{precioUnitarioCerveza}</p>
                 </div>
                 <div>
                   <Label className="text-sm text-gray-600">Costo Total</Label>
                   <p className="text-2xl font-bold text-green-600">₪{costoCervezas.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Hielo */}
+            <div className="p-4 border-2 border-cyan-200 rounded-lg bg-gradient-to-r from-cyan-50 to-blue-50">
+              <div className="flex items-center gap-3 mb-3">
+                <Package className="w-6 h-6 text-cyan-600" />
+                <h3 className="text-lg font-bold text-gray-900">Bolsas de Hielo</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-sm text-gray-600">Cantidad de Bolsas</Label>
+                  <p className="text-2xl font-bold text-cyan-700">{bolsasHielo}</p>
+                  <p className="text-xs text-gray-500">
+                    1 bolsa cada 20 cervezas
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm text-gray-600">Precio por Bolsa</Label>
+                  <p className="text-xl font-semibold text-gray-900">₪{precioHielo}</p>
+                </div>
+                <div>
+                  <Label className="text-sm text-gray-600">Costo Total</Label>
+                  <p className="text-2xl font-bold text-green-600">₪{costoHielo.toFixed(2)}</p>
                 </div>
               </div>
             </div>
@@ -112,30 +137,23 @@ export default function ShoppingList({ tournament, totalParticipants }) {
               <div className="p-4 border-2 border-orange-200 rounded-lg bg-gradient-to-r from-orange-50 to-red-50">
                 <div className="flex items-center gap-3 mb-3">
                   <Cookie className="w-6 h-6 text-orange-600" />
-                  <h3 className="text-lg font-bold text-gray-900">Snacks</h3>
+                  <h3 className="text-lg font-bold text-gray-900">Snacks por Equipo</h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label className="text-sm text-gray-600 mb-2 block">Sugerencia</Label>
-                    <ul className="text-sm text-gray-700 space-y-1">
-                      <li>• Papas fritas (2-3 bolsas grandes)</li>
-                      <li>• Frutos secos (mix variado)</li>
-                      <li>• Galletas saladas</li>
-                    </ul>
+                    <Label className="text-sm text-gray-600">Total Equipos</Label>
+                    <p className="text-2xl font-bold text-orange-700">{numTeams}</p>
                   </div>
                   <div>
-                    <Label htmlFor="precio-snacks" className="text-sm text-gray-600">
-                      Presupuesto Estimado (₪)
-                    </Label>
-                    <Input
-                      id="precio-snacks"
-                      type="number"
-                      min="0"
-                      step="5"
-                      value={precioSnacks}
-                      onChange={(e) => setPrecioSnacks(parseFloat(e.target.value) || 0)}
-                      className="mt-1"
-                    />
+                    <Label className="text-sm text-gray-600">Precio por Equipo</Label>
+                    <p className="text-xl font-semibold text-gray-900">₪{snackPorEquipo}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Papas, frutos secos, galletas
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-600">Costo Total</Label>
+                    <p className="text-2xl font-bold text-green-600">₪{costoSnacks.toFixed(2)}</p>
                   </div>
                 </div>
               </div>

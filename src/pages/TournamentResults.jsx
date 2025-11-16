@@ -4,12 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Trophy, Calendar, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Trophy, Calendar, ShoppingCart, Play } from "lucide-react";
 import TeamsGrid from "../components/results/TeamsGrid";
 import MatchSchedule from "../components/results/MatchSchedule";
 import ShoppingList from "../components/results/ShoppingList";
+import StartTournamentDialog from "../components/results/StartTournamentDialog";
 
 export default function TournamentResults() {
   const navigate = useNavigate();
@@ -64,23 +64,32 @@ export default function TournamentResults() {
   }
 
   const totalParticipants = tournament?.jugadores_seleccionados?.length || 0;
+  const numTeams = teams.length;
 
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigate(createPageUrl(`TournamentDetail?id=${tournamentId}`))}
-            className="border-2 border-orange-200 hover:bg-orange-50"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">{tournament?.nombre}</h1>
-            <p className="text-gray-600">Equipos, fixture y lista de compras</p>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate(createPageUrl(`TournamentDetail?id=${tournamentId}`))}
+              className="border-2 border-orange-200 hover:bg-orange-50"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">{tournament?.nombre}</h1>
+              <p className="text-gray-600">Equipos, fixture y lista de compras</p>
+            </div>
           </div>
+          {tournament?.estado === 'equipos_armados' && (
+            <StartTournamentDialog 
+              tournament={tournament} 
+              tournamentId={tournamentId}
+            />
+          )}
         </div>
 
         <Tabs defaultValue="teams" className="space-y-6">
@@ -109,7 +118,12 @@ export default function TournamentResults() {
           </TabsList>
 
           <TabsContent value="teams">
-            <TeamsGrid teams={teams} allPlayers={allPlayers} />
+            <TeamsGrid 
+              teams={teams} 
+              allPlayers={allPlayers} 
+              tournament={tournament}
+              tournamentId={tournamentId}
+            />
           </TabsContent>
 
           <TabsContent value="schedule">
@@ -124,6 +138,7 @@ export default function TournamentResults() {
             <ShoppingList 
               tournament={tournament} 
               totalParticipants={totalParticipants}
+              numTeams={numTeams}
             />
           </TabsContent>
         </Tabs>
