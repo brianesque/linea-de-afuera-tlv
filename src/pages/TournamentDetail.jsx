@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -346,28 +347,30 @@ export default function TournamentDetail() {
                         <h3 className="font-semibold text-gray-900">Configuración de Fase Final</h3>
                       </div>
                       
-                      <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                      <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
                         <div>
-                          <Label className="font-semibold">Jugar Final</Label>
+                          <Label className="font-semibold cursor-pointer">Jugar Final</Label>
                           <p className="text-sm text-gray-600">Los mejores 2 equipos</p>
                         </div>
                         <Switch
                           checked={tournament.jugar_final || false}
                           onCheckedChange={(checked) => handleTogglePlayoff('jugar_final', checked)}
                           disabled={tournament.fase_actual !== 'fase_grupos'}
+                          className="data-[state=checked]:bg-purple-600"
                         />
                       </div>
 
                       {tournament.jugar_final && (
-                        <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
                           <div>
-                            <Label className="font-semibold">Incluir Semifinales</Label>
+                            <Label className="font-semibold cursor-pointer">Incluir Semifinales</Label>
                             <p className="text-sm text-gray-600">Los mejores 4 equipos</p>
                           </div>
                           <Switch
                             checked={tournament.jugar_semifinal || false}
                             onCheckedChange={(checked) => handleTogglePlayoff('jugar_semifinal', checked)}
                             disabled={tournament.fase_actual !== 'fase_grupos'}
+                            className="data-[state=checked]:bg-purple-600"
                           />
                         </div>
                       )}

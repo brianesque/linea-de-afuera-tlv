@@ -253,16 +253,16 @@ export default function Players() {
                 {filteredPlayers.map((player) => (
                   <div
                     key={player.id}
-                    className="flex items-center justify-between p-4 hover:bg-sky-50 transition-colors"
+                    className="flex items-center justify-between p-3 hover:bg-sky-50 transition-colors"
                   >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-8 h-8 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                         {player.nombre[0].toUpperCase()}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-gray-900">{player.nombre}</p>
-                          <Badge className={`${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                          <p className="font-semibold text-gray-900 text-sm">{player.nombre}</p>
+                          <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
                             {player.genero === "femenino" ? "F" : "M"}
                           </Badge>
                         </div>
@@ -270,7 +270,7 @@ export default function Players() {
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                               key={star}
-                              className={`w-4 h-4 ${
+                              className={`w-3.5 h-3.5 ${
                                 star <= player.calificacion
                                   ? "fill-yellow-400 text-yellow-400"
                                   : "text-gray-300"
@@ -280,22 +280,22 @@ export default function Players() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                       <Button
                         size="icon"
                         variant="ghost"
                         onClick={() => openEditDialog(player)}
-                        className="hover:bg-sky-100"
+                        className="h-8 w-8 hover:bg-sky-100"
                       >
-                        <Edit2 className="w-4 h-4 text-sky-600" />
+                        <Edit2 className="w-3.5 h-3.5 text-sky-600" />
                       </Button>
                       <Button
                         size="icon"
                         variant="ghost"
                         onClick={() => deleteMutation.mutate(player.id)}
-                        className="hover:bg-red-100"
+                        className="h-8 w-8 hover:bg-red-100"
                       >
-                        <Trash2 className="w-4 h-4 text-red-600" />
+                        <Trash2 className="w-3.5 h-3.5 text-red-600" />
                       </Button>
                     </div>
                   </div>

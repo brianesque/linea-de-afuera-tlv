@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -38,6 +39,12 @@ export default function CreateTournament() {
     initialData: [],
   });
 
+  const { data: allPlayers } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+    initialData: [],
+  });
+
   const createTournamentMutation = useMutation({
     mutationFn: (data) => base44.entities.Tournament.create(data),
     onSuccess: (tournament) => {
@@ -73,11 +80,19 @@ export default function CreateTournament() {
     return beerCost + drinksCost + snacksCost;
   };
 
+  const totalPlayersNeeded = formData.jugadores_por_equipo * formData.numero_equipos;
+  const hasEnoughPlayers = allPlayers.length >= totalPlayersNeeded;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
     if (!formData.nombre || !formData.fecha_inicio) {
       toast.error("Por favor completa todos los campos obligatorios");
+      return;
+    }
+
+    if (!hasEnoughPlayers) {
+      toast.error(`Necesitas al menos ${totalPlayersNeeded} jugadores. Tienes ${allPlayers.length}.`);
       return;
     }
 
@@ -183,6 +198,11 @@ export default function CreateTournament() {
                     value={formData.numero_equipos}
                     onChange={(e) => setFormData({...formData, numero_equipos: parseInt(e.target.value)})}
                   />
+                  {!hasEnoughPlayers && (
+                    <p className="text-xs text-red-600 mt-1">
+                      ⚠️ Necesitas {totalPlayersNeeded} jugadores. Disponibles: {allPlayers.length}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -249,28 +269,30 @@ export default function CreateTournament() {
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="font-semibold text-gray-900">Fase Final</h3>
                 
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
                   <div>
-                    <Label htmlFor="jugar_final" className="font-semibold">Jugar Final</Label>
+                    <Label htmlFor="jugar_final" className="font-semibold cursor-pointer">Jugar Final</Label>
                     <p className="text-sm text-gray-600">Los mejores 2 equipos juegan la final</p>
                   </div>
                   <Switch
                     id="jugar_final"
                     checked={formData.jugar_final}
                     onCheckedChange={(checked) => setFormData({...formData, jugar_final: checked, jugar_semifinal: checked ? formData.jugar_semifinal : false})}
+                    className="data-[state=checked]:bg-purple-600"
                   />
                 </div>
 
                 {formData.jugar_final && (
-                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
                     <div>
-                      <Label htmlFor="jugar_semifinal" className="font-semibold">Incluir Semifinales</Label>
+                      <Label htmlFor="jugar_semifinal" className="font-semibold cursor-pointer">Incluir Semifinales</Label>
                       <p className="text-sm text-gray-600">Los mejores 4 juegan semifinales + final</p>
                     </div>
                     <Switch
                       id="jugar_semifinal"
                       checked={formData.jugar_semifinal}
                       onCheckedChange={(checked) => setFormData({...formData, jugar_semifinal: checked})}
+                      className="data-[state=checked]:bg-purple-600"
                     />
                   </div>
                 )}
@@ -307,12 +329,13 @@ export default function CreateTournament() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <Label htmlFor="snacks">Incluir Snacks</Label>
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border-2 border-green-200">
+                  <Label htmlFor="snacks" className="cursor-pointer">Incluir Snacks</Label>
                   <Switch
                     id="snacks"
                     checked={formData.snacks}
                     onCheckedChange={(checked) => setFormData({...formData, snacks: checked})}
+                    className="data-[state=checked]:bg-green-600"
                   />
                 </div>
               </div>
