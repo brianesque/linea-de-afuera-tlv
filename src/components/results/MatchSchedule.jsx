@@ -1,95 +1,232 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CalendarDays } from "lucide-react";
+import { Clock, CalendarDays, Copy, Download, LayoutGrid, Table2 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
 
 export default function MatchSchedule({ matches, teams, tournament }) {
+  const [viewMode, setViewMode] = useState("cards");
+
   const getTeamName = (teamId) => {
     const team = teams.find(t => t.id === teamId);
     return team?.nombre || "Equipo";
   };
 
+  const handleCopyToClipboard = () => {
+    let csv = "Partido,Equipo 1,Equipo 2,Horario\n";
+    
+    matches.forEach(match => {
+      const team1 = getTeamName(match.equipo1_id);
+      const team2 = getTeamName(match.equipo2_id);
+      const horario = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
+      csv += `${match.numero_partido},"${team1}","${team2}",${horario}\n`;
+    });
+
+    navigator.clipboard.writeText(csv);
+    toast.success("¡Fixture copiado al portapapeles en formato CSV!");
+  };
+
+  const handleDownloadCSV = () => {
+    let csv = "Partido,Equipo 1,Equipo 2,Horario\n";
+    
+    matches.forEach(match => {
+      const team1 = getTeamName(match.equipo1_id);
+      const team2 = getTeamName(match.equipo2_id);
+      const horario = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
+      csv += `${match.numero_partido},"${team1}","${team2}",${horario}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'fixture_torneo.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("¡Fixture descargado!");
+  };
+
   return (
-    <Card className="border-2 border-orange-100 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-orange-100 to-amber-100">
-        <CardTitle className="flex items-center gap-2">
-          <CalendarDays className="w-5 h-5 text-orange-600" />
-          Cronograma de Partidos
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-6">
-        {matches.length === 0 ? (
-          <div className="text-center py-12">
-            <CalendarDays className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No hay partidos programados todavía</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {matches.map((match, index) => (
-              <Card key={match.id} className="border-2 border-sky-100 bg-gradient-to-r from-white to-sky-50">
-                <CardContent className="pt-4">
-                  <div className="flex flex-col md:flex-row md:items-center gap-4">
-                    <div className="flex items-center gap-2 md:w-32">
-                      <Badge className="bg-sky-500 text-white font-bold">
-                        Partido {match.numero_partido}
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center justify-center gap-4">
-                        <div className="flex-1 text-right">
-                          <p className="font-bold text-gray-900 text-lg">
-                            {getTeamName(match.equipo1_id).split(' - ')[1] || getTeamName(match.equipo1_id)}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {getTeamName(match.equipo1_id).split(' - ')[0]}
-                          </p>
-                        </div>
-                        
-                        <div className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg">
-                          <span className="text-white font-bold text-xl">VS</span>
-                        </div>
-                        
-                        <div className="flex-1 text-left">
-                          <p className="font-bold text-gray-900 text-lg">
-                            {getTeamName(match.equipo2_id).split(' - ')[1] || getTeamName(match.equipo2_id)}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {getTeamName(match.equipo2_id).split(' - ')[0]}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 md:w-48 text-right">
-                      <Clock className="w-4 h-4 text-orange-600" />
-                      <span className="text-sm font-medium text-gray-700">
-                        {format(new Date(match.horario_estimado), "HH:mm", { locale: es })} hs
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-        
-        {matches.length > 0 && (
-          <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border-2 border-orange-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-gray-900">Duración total estimada</p>
-                <p className="text-sm text-gray-600">Basado en {tournament?.duracion_partido_minutos} min por partido</p>
+    <div className="space-y-4">
+      <Card className="border-2 border-orange-100">
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex gap-2">
+              <div className="flex border-2 border-gray-200 rounded-lg overflow-hidden">
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("cards")}
+                  className={`rounded-none ${viewMode === "cards" ? "bg-orange-500 text-white" : ""}`}
+                >
+                  <LayoutGrid className="w-4 h-4 mr-2" />
+                  Cards
+                </Button>
+                <Button
+                  variant={viewMode === "table" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("table")}
+                  className={`rounded-none ${viewMode === "table" ? "bg-orange-500 text-white" : ""}`}
+                >
+                  <Table2 className="w-4 h-4 mr-2" />
+                  Tabla
+                </Button>
               </div>
-              <p className="text-2xl font-bold text-orange-600">
-                {matches.length * (tournament?.duracion_partido_minutos || 30)} min
-              </p>
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyToClipboard}
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copiar CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadCSV}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Descargar CSV
+              </Button>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Card className="border-2 border-orange-100 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-orange-100 to-amber-100">
+          <CardTitle className="flex items-center gap-2">
+            <CalendarDays className="w-5 h-5 text-orange-600" />
+            Cronograma de Partidos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {matches.length === 0 ? (
+            <div className="text-center py-12">
+              <CalendarDays className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">No hay partidos programados todavía</p>
+            </div>
+          ) : viewMode === "cards" ? (
+            <div className="space-y-4">
+              {matches.map((match) => (
+                <Card key={match.id} className="border-2 border-sky-100 bg-gradient-to-r from-white to-sky-50">
+                  <CardContent className="pt-4">
+                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                      <div className="flex items-center gap-2 md:w-32">
+                        <Badge className="bg-sky-500 text-white font-bold">
+                          Partido {match.numero_partido}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center justify-center gap-4">
+                          <div className="flex-1 text-right">
+                            <p className="font-bold text-gray-900 text-lg">
+                              {getTeamName(match.equipo1_id).split(' - ')[1] || getTeamName(match.equipo1_id)}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {getTeamName(match.equipo1_id).split(' - ')[0]}
+                            </p>
+                          </div>
+                          
+                          <div className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg">
+                            <span className="text-white font-bold text-xl">VS</span>
+                          </div>
+                          
+                          <div className="flex-1 text-left">
+                            <p className="font-bold text-gray-900 text-lg">
+                              {getTeamName(match.equipo2_id).split(' - ')[1] || getTeamName(match.equipo2_id)}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {getTeamName(match.equipo2_id).split(' - ')[0]}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 md:w-48 text-right">
+                        <Clock className="w-4 h-4 text-orange-600" />
+                        <span className="text-sm font-medium text-gray-700">
+                          {format(new Date(match.horario_estimado), "HH:mm", { locale: es })} hs
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-orange-100 to-amber-100">
+                    <TableHead className="font-bold">#</TableHead>
+                    <TableHead className="font-bold">Equipo 1</TableHead>
+                    <TableHead className="font-bold text-center">VS</TableHead>
+                    <TableHead className="font-bold">Equipo 2</TableHead>
+                    <TableHead className="font-bold">Horario</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {matches.map((match) => (
+                    <TableRow key={match.id}>
+                      <TableCell>
+                        <Badge className="bg-sky-500 text-white">
+                          {match.numero_partido}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {getTeamName(match.equipo1_id)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="bg-orange-100">VS</Badge>
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {getTeamName(match.equipo2_id)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-orange-600" />
+                          {format(new Date(match.horario_estimado), "HH:mm", { locale: es })} hs
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          
+          {matches.length > 0 && (
+            <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border-2 border-orange-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900">Duración total estimada</p>
+                  <p className="text-sm text-gray-600">Basado en {tournament?.duracion_partido_minutos} min por partido</p>
+                </div>
+                <p className="text-2xl font-bold text-orange-600">
+                  {matches.length * (tournament?.duracion_partido_minutos || 30)} min
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

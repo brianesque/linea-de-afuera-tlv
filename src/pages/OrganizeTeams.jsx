@@ -5,9 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, Search, Sparkles, Crown } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import PlayerSelector from "../components/organize/PlayerSelector";
 import CaptainSelector from "../components/organize/CaptainSelector";
 
@@ -64,7 +62,7 @@ export default function OrganizeTeams() {
     p.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const numTeams = Math.floor(selectedPlayerIds.length / tournament.jugadores_por_equipo);
+  const numTeams = tournament.numero_equipos || Math.floor(selectedPlayerIds.length / tournament.jugadores_por_equipo);
 
   const handlePlayerToggle = (playerId) => {
     setSelectedPlayerIds(prev =>
@@ -90,8 +88,15 @@ export default function OrganizeTeams() {
       id: p.id,
       nombre: p.nombre,
       calificacion: p.calificacion,
+      genero: p.genero,
       is_captain: captains.includes(p.id)
     }));
+
+    // Guardar los capitanes en el torneo
+    await updateTournamentMutation.mutateAsync({
+      id: tournamentId,
+      data: { capitanes_ids: captains.filter(c => c !== null) }
+    });
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Eres un asistente que organiza equipos de beach vóley de manera equilibrada.
@@ -102,10 +107,11 @@ Datos:
 - Jugadores disponibles: ${JSON.stringify(playersData)}
 
 Instrucciones:
-1. Crea ${numTeams} equipos equilibrados basándote en las calificaciones (1-5).
-2. Los jugadores marcados como "is_captain: true" DEBEN ser capitanes y estar en equipos diferentes.
-3. Distribuye el resto de jugadores para que el promedio de calificación de cada equipo sea lo más similar posible.
-4. Cada equipo debe tener exactamente ${tournament.jugadores_por_equipo} jugadores.
+1. Los jugadores marcados como "is_captain: true" DEBEN ser capitanes y estar en equipos diferentes.
+2. Crea ${numTeams} equipos equilibrados basándote en las calificaciones (1-5).
+3. IMPORTANTE: Distribuye las mujeres (genero: "femenino") de manera equitativa entre todos los equipos. Cada equipo debe tener aproximadamente la misma cantidad de mujeres.
+4. Distribuye el resto de jugadores para que el promedio de calificación de cada equipo sea lo más similar posible.
+5. Cada equipo debe tener exactamente ${tournament.jugadores_por_equipo} jugadores.
 
 Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
       response_json_schema: {
