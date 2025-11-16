@@ -1,25 +1,29 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Calendar, Trophy, DollarSign, Play, User } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Trophy, DollarSign, Play, User, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import TeamsGrid from "../components/results/TeamsGrid";
 import MatchSchedule from "../components/results/MatchSchedule";
 import StandingsTable from "../components/results/StandingsTable";
 import FinishTournamentDialog from "../components/results/FinishTournamentDialog";
+import PlayoffDialog from "../components/results/PlayoffDialog";
 
 export default function TournamentDetail() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const tournamentId = urlParams.get('id');
   const [user, setUser] = useState(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -64,14 +68,43 @@ export default function TournamentDetail() {
     initialData: [],
   });
 
+  const updateTournamentMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Tournament.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tournament', tournamentId] });
+      toast.success("Configuración actualizada");
+    },
+  });
+
+  const handleTogglePlayoff = (field, value) => {
+    updateTournamentMutation.mutate({
+      id: tournament.id,
+      data: { 
+        [field]: value,
+        ...(field === 'jugar_final' && !value ? { jugar_semifinal: false } : {})
+      }
+    });
+  };
+
   const winnerTeam = useMemo(() => {
     if (tournament?.estado !== 'finalizado' || teams.length === 0 || matches.length === 0) {
       return null;
     }
 
+    // Si hay final, el ganador es el que ganó la final
+    const finalMatch = matches.find(m => m.fase === 'final' && m.estado === 'finalizado');
+    if (finalMatch) {
+      const winnerId = finalMatch.sets_equipo1 > finalMatch.sets_equipo2 ? 
+        finalMatch.equipo1_id : finalMatch.equipo2_id;
+      return teams.find(t => t.id === winnerId);
+    }
+
+    // Si no hay final, usar el ranking de fase de grupos
     const stats = teams.map(team => {
-      const teamMatches = matches.filter(m =>
-        (m.equipo1_id === team.id || m.equipo2_id === team.id) && m.estado === 'finalizado'
+      const teamMatches = matches.filter(m => 
+        (m.equipo1_id === team.id || m.equipo2_id === team.id) && 
+        m.estado === 'finalizado' &&
+        m.fase === 'fase_grupos'
       );
 
       let partidosGanados = 0;
@@ -109,7 +142,7 @@ export default function TournamentDetail() {
 
     stats.sort((a, b) => {
       if (tournament.criterio_ganador === 'sets') {
-        if (b.setsAFavor !== a.setsAFavor) return b.setsAFavor - a.setsAFavor;
+        if (b.diferenciaSets !== a.diferenciaSets) return b.diferenciaSets - a.diferenciaSets;
       } else {
         if (b.partidosGanados !== a.partidosGanados) return b.partidosGanados - a.partidosGanados;
       }
@@ -130,6 +163,15 @@ export default function TournamentDetail() {
     if (!winnerTeam) return [];
     return winnerTeam.jugadores_ids || [];
   }, [winnerTeam]);
+
+  const canStartPlayoff = useMemo(() => {
+    if (!tournament || tournament.estado === 'finalizado') return false;
+    if (!tournament.jugar_final && !tournament.jugar_semifinal) return false;
+    if (tournament.fase_actual !== 'fase_grupos') return false;
+    
+    const groupMatches = matches.filter(m => m.fase === 'fase_grupos');
+    return groupMatches.every(m => m.estado === 'finalizado');
+  }, [tournament, matches]);
 
   if (!tournamentId) {
     navigate(createPageUrl("Home"));
@@ -163,7 +205,7 @@ export default function TournamentDetail() {
     );
   }
 
-  const participantes = allPlayers.filter(p =>
+  const participantes = allPlayers.filter(p => 
     tournament.jugadores_seleccionados?.includes(p.id)
   );
 
@@ -193,9 +235,16 @@ export default function TournamentDetail() {
               Organizar Equipos
             </Button>
           )}
-          {(tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados') && isAdmin && (
-            <FinishTournamentDialog
+          {canStartPlayoff && isAdmin && (
+            <PlayoffDialog 
               tournament={tournament}
+              matches={matches}
+              teams={teams}
+            />
+          )}
+          {(tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados') && isAdmin && !canStartPlayoff && (
+            <FinishTournamentDialog 
+              tournament={tournament} 
               matches={matches}
               onFinish={() => navigate(createPageUrl("Home"))}
             />
@@ -278,7 +327,7 @@ export default function TournamentDetail() {
                     <div>
                       <p className="text-sm text-gray-500 mb-1">Criterio para Ganador</p>
                       <p className="font-semibold text-gray-900">
-                        {tournament.criterio_ganador === 'sets' ? 'Por Sets' : 'Por Partidos Ganados'}
+                        {tournament.criterio_ganador === 'sets' ? 'Por Sets (Diferencia)' : 'Por Partidos Ganados'}
                       </p>
                     </div>
 
@@ -289,6 +338,41 @@ export default function TournamentDetail() {
                       </p>
                     </div>
                   </div>
+
+                  {isAdmin && tournament.estado !== 'finalizado' && (
+                    <div className="mt-6 pt-6 border-t space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Settings className="w-4 h-4 text-purple-600" />
+                        <h3 className="font-semibold text-gray-900">Configuración de Fase Final</h3>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                        <div>
+                          <Label className="font-semibold">Jugar Final</Label>
+                          <p className="text-sm text-gray-600">Los mejores 2 equipos</p>
+                        </div>
+                        <Switch
+                          checked={tournament.jugar_final || false}
+                          onCheckedChange={(checked) => handleTogglePlayoff('jugar_final', checked)}
+                          disabled={tournament.fase_actual !== 'fase_grupos'}
+                        />
+                      </div>
+
+                      {tournament.jugar_final && (
+                        <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                          <div>
+                            <Label className="font-semibold">Incluir Semifinales</Label>
+                            <p className="text-sm text-gray-600">Los mejores 4 equipos</p>
+                          </div>
+                          <Switch
+                            checked={tournament.jugar_semifinal || false}
+                            onCheckedChange={(checked) => handleTogglePlayoff('jugar_semifinal', checked)}
+                            disabled={tournament.fase_actual !== 'fase_grupos'}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -330,7 +414,7 @@ export default function TournamentDetail() {
                     <p className="text-xl font-bold text-orange-800">
                       {tournament.estado === 'configuracion' && '⚙️ En Configuración'}
                       {tournament.estado === 'equipos_armados' && '✅ Equipos Armados'}
-                      {tournament.estado === 'en_curso' && '🏐 En Curso'}
+                      {tournament.estado === 'en_curso' && `🏐 ${tournament.fase_actual === 'fase_grupos' ? 'Fase de Grupos' : tournament.fase_actual === 'semifinal' ? 'Semifinales' : 'Final'}`}
                       {tournament.estado === 'finalizado' && '🏆 Finalizado'}
                     </p>
                   </div>
@@ -384,7 +468,7 @@ export default function TournamentDetail() {
           {(tournament.estado === 'equipos_armados' || tournament.estado === 'en_curso' || tournament.estado === 'finalizado') && (
             <>
               <TabsContent value="standings">
-                <StandingsTable
+                <StandingsTable 
                   teams={teams}
                   matches={matches}
                   tournament={tournament}
@@ -392,9 +476,9 @@ export default function TournamentDetail() {
               </TabsContent>
 
               <TabsContent value="teams">
-                <TeamsGrid
-                  teams={teams}
-                  allPlayers={allPlayers}
+                <TeamsGrid 
+                  teams={teams} 
+                  allPlayers={allPlayers} 
                   tournament={tournament}
                   tournamentId={tournamentId}
                   winnerTeamId={winnerTeam?.id}
@@ -402,9 +486,9 @@ export default function TournamentDetail() {
               </TabsContent>
 
               <TabsContent value="fixture">
-                <MatchSchedule
-                  matches={matches}
-                  teams={teams}
+                <MatchSchedule 
+                  matches={matches} 
+                  teams={teams} 
                   tournament={tournament}
                   isAdmin={isAdmin}
                 />

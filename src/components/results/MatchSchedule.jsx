@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Calendar, Download, Copy, LayoutGrid, Table2 } from "lucide-react";
+import { Clock, Calendar, Download, Copy, LayoutGrid, Table2, Trophy } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -19,6 +19,14 @@ import MatchResultInput from "./MatchResultInput";
 export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
   const [viewMode, setViewMode] = useState("cards");
 
+  const matchesByPhase = useMemo(() => {
+    return {
+      fase_grupos: matches.filter(m => m.fase === 'fase_grupos' || !m.fase),
+      semifinal: matches.filter(m => m.fase === 'semifinal'),
+      final: matches.filter(m => m.fase === 'final')
+    };
+  }, [matches]);
+
   const getTeamName = (teamId) => {
     const team = teams.find(t => t.id === teamId);
     return team ? team.nombre : "Equipo no encontrado";
@@ -34,8 +42,9 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
   };
 
   const handleCopyToClipboard = () => {
-    let csv = "Partido,Equipo 1,Equipo 2,Hora Estimada,Set 1,Set 2,Set 3,Resultado\n";
+    let csv = "Fase,Partido,Equipo 1,Equipo 2,Hora Estimada,Set 1,Set 2,Set 3,Resultado\n";
     matches.forEach(match => {
+      const fase = match.fase === 'semifinal' ? 'Semifinal' : match.fase === 'final' ? 'Final' : 'Fase de Grupos';
       const team1Name = getTeamName(match.equipo1_id);
       const team2Name = getTeamName(match.equipo2_id);
       const time = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
@@ -43,7 +52,7 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
       const set2 = match.estado === 'finalizado' ? `${match.set2_equipo1}-${match.set2_equipo2}` : '-';
       const set3 = match.estado === 'finalizado' && match.set3_equipo1 !== null ? `${match.set3_equipo1}-${match.set3_equipo2}` : '-';
       const resultado = match.estado === 'finalizado' ? `${match.sets_equipo1}-${match.sets_equipo2}` : '-';
-      csv += `${match.numero_partido},"${team1Name}","${team2Name}",${time},${set1},${set2},${set3},${resultado}\n`;
+      csv += `${fase},${match.numero_partido},"${team1Name}","${team2Name}",${time},${set1},${set2},${set3},${resultado}\n`;
     });
 
     navigator.clipboard.writeText(csv);
@@ -51,8 +60,9 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
   };
 
   const handleDownloadCSV = () => {
-    let csv = "Partido,Equipo 1,Equipo 2,Hora Estimada,Set 1,Set 2,Set 3,Resultado\n";
+    let csv = "Fase,Partido,Equipo 1,Equipo 2,Hora Estimada,Set 1,Set 2,Set 3,Resultado\n";
     matches.forEach(match => {
+      const fase = match.fase === 'semifinal' ? 'Semifinal' : match.fase === 'final' ? 'Final' : 'Fase de Grupos';
       const team1Name = getTeamName(match.equipo1_id);
       const team2Name = getTeamName(match.equipo2_id);
       const time = format(new Date(match.horario_estimado), "HH:mm", { locale: es });
@@ -60,7 +70,7 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
       const set2 = match.estado === 'finalizado' ? `${match.set2_equipo1}-${match.set2_equipo2}` : '-';
       const set3 = match.estado === 'finalizado' && match.set3_equipo1 !== null ? `${match.set3_equipo1}-${match.set3_equipo2}` : '-';
       const resultado = match.estado === 'finalizado' ? `${match.sets_equipo1}-${match.sets_equipo2}` : '-';
-      csv += `${match.numero_partido},"${team1Name}","${team2Name}",${time},${set1},${set2},${set3},${resultado}\n`;
+      csv += `${fase},${match.numero_partido},"${team1Name}","${team2Name}",${time},${set1},${set2},${set3},${resultado}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -78,8 +88,93 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
   const hours = Math.floor(totalDuration / 60);
   const minutes = totalDuration % 60;
 
+  const MatchCard = ({ match }) => {
+    const estadoBadge = getEstadoBadge(match.estado);
+    const team1 = teams.find(t => t.id === match.equipo1_id);
+    const team2 = teams.find(t => t.id === match.equipo2_id);
+    const isFinal = match.fase === 'final';
+
+    return (
+      <Card className={`border-2 hover:shadow-lg transition-all ${isFinal ? 'border-yellow-300 bg-gradient-to-br from-yellow-50 to-amber-50' : 'border-orange-100'}`}>
+        <CardHeader className={`${isFinal ? 'bg-gradient-to-r from-yellow-100 to-amber-100' : 'bg-gradient-to-r from-orange-50 to-amber-50'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-lg">
+                {isFinal && <Trophy className="w-5 h-5 text-yellow-600 inline mr-2" />}
+                Partido #{match.numero_partido}
+              </CardTitle>
+              {match.fase && match.fase !== 'fase_grupos' && (
+                <Badge className="bg-purple-500 text-white">
+                  {match.fase === 'semifinal' ? 'Semifinal' : 'FINAL'}
+                </Badge>
+              )}
+            </div>
+            <Badge className={estadoBadge.class}>{estadoBadge.label}</Badge>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Calendar className="w-4 h-4" />
+            <span>{format(new Date(match.horario_estimado), "HH:mm", { locale: es })} hs</span>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-sky-50 rounded-lg">
+              <span className="font-semibold text-gray-900">{getTeamName(match.equipo1_id)}</span>
+              {match.estado === 'finalizado' && (
+                <div className="text-right">
+                  <Badge className="bg-sky-600 text-white text-lg px-3 py-1">
+                    {match.sets_equipo1}
+                  </Badge>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+              <span className="font-semibold text-gray-900">{getTeamName(match.equipo2_id)}</span>
+              {match.estado === 'finalizado' && (
+                <div className="text-right">
+                  <Badge className="bg-orange-600 text-white text-lg px-3 py-1">
+                    {match.sets_equipo2}
+                  </Badge>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {match.estado === 'finalizado' && (
+            <div className="pt-2 border-t border-gray-200">
+              <p className="text-xs text-gray-500 mb-2">Detalle por Sets:</p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white rounded p-2 border">
+                  <p className="text-xs text-gray-500 mb-1">Set 1</p>
+                  <p className="font-bold">{match.set1_equipo1} - {match.set1_equipo2}</p>
+                </div>
+                <div className="bg-white rounded p-2 border">
+                  <p className="text-xs text-gray-500 mb-1">Set 2</p>
+                  <p className="font-bold">{match.set2_equipo1} - {match.set2_equipo2}</p>
+                </div>
+                {match.set3_equipo1 !== null && match.set3_equipo1 !== undefined && (
+                  <div className="bg-white rounded p-2 border">
+                    <p className="text-xs text-gray-500 mb-1">Set 3</p>
+                    <p className="font-bold">{match.set3_equipo1} - {match.set3_equipo2}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {isAdmin && tournament?.estado !== 'finalizado' && (
+            <div className="pt-2 border-t border-gray-200">
+              <MatchResultInput match={match} team1={team1} team2={team2} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Card className="border-2 border-orange-100">
         <CardContent className="pt-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -137,80 +232,51 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
       </Card>
 
       {viewMode === "cards" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {matches.map((match) => {
-            const estadoBadge = getEstadoBadge(match.estado);
-            const team1 = teams.find(t => t.id === match.equipo1_id);
-            const team2 = teams.find(t => t.id === match.equipo2_id);
+        <div className="space-y-8">
+          {/* Fase de Grupos */}
+          {matchesByPhase.fase_grupos.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-8 bg-sky-500 rounded"></span>
+                Fase de Grupos
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {matchesByPhase.fase_grupos.map((match) => (
+                  <MatchCard key={match.id} match={match} />
+                ))}
+              </div>
+            </div>
+          )}
 
-            return (
-              <Card key={match.id} className="border-2 border-orange-100 hover:shadow-lg transition-all">
-                <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Partido #{match.numero_partido}</CardTitle>
-                    <Badge className={estadoBadge.class}>{estadoBadge.label}</Badge>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span>{format(new Date(match.horario_estimado), "HH:mm", { locale: es })} hs</span>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-sky-50 rounded-lg">
-                      <span className="font-semibold text-gray-900">{getTeamName(match.equipo1_id)}</span>
-                      {match.estado === 'finalizado' && (
-                        <div className="text-right">
-                          <Badge className="bg-sky-600 text-white text-lg px-3 py-1">
-                            {match.sets_equipo1}
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                      <span className="font-semibold text-gray-900">{getTeamName(match.equipo2_id)}</span>
-                      {match.estado === 'finalizado' && (
-                        <div className="text-right">
-                          <Badge className="bg-orange-600 text-white text-lg px-3 py-1">
-                            {match.sets_equipo2}
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+          {/* Semifinales */}
+          {matchesByPhase.semifinal.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-8 bg-purple-500 rounded"></span>
+                Semifinales
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {matchesByPhase.semifinal.map((match) => (
+                  <MatchCard key={match.id} match={match} />
+                ))}
+              </div>
+            </div>
+          )}
 
-                  {match.estado === 'finalizado' && (
-                    <div className="pt-2 border-t border-gray-200">
-                      <p className="text-xs text-gray-500 mb-2">Detalle por Sets:</p>
-                      <div className="grid grid-cols-3 gap-2 text-center">
-                        <div className="bg-white rounded p-2 border">
-                          <p className="text-xs text-gray-500 mb-1">Set 1</p>
-                          <p className="font-bold">{match.set1_equipo1} - {match.set1_equipo2}</p>
-                        </div>
-                        <div className="bg-white rounded p-2 border">
-                          <p className="text-xs text-gray-500 mb-1">Set 2</p>
-                          <p className="font-bold">{match.set2_equipo1} - {match.set2_equipo2}</p>
-                        </div>
-                        {match.set3_equipo1 !== null && match.set3_equipo1 !== undefined && (
-                          <div className="bg-white rounded p-2 border">
-                            <p className="text-xs text-gray-500 mb-1">Set 3</p>
-                            <p className="font-bold">{match.set3_equipo1} - {match.set3_equipo2}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {isAdmin && tournament?.estado !== 'finalizado' && (
-                    <div className="pt-2 border-t border-gray-200">
-                      <MatchResultInput match={match} team1={team1} team2={team2} />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+          {/* Final */}
+          {matchesByPhase.final.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Trophy className="w-8 h-8 text-yellow-500" />
+                FINAL
+              </h2>
+              <div className="grid grid-cols-1 gap-4 max-w-2xl mx-auto">
+                {matchesByPhase.final.map((match) => (
+                  <MatchCard key={match.id} match={match} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <Card className="border-2 border-orange-100">
@@ -219,6 +285,7 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gradient-to-r from-orange-100 to-amber-100">
+                    <TableHead className="font-bold">Fase</TableHead>
                     <TableHead className="font-bold">#</TableHead>
                     <TableHead className="font-bold">Equipo 1</TableHead>
                     <TableHead className="font-bold">Equipo 2</TableHead>
@@ -238,9 +305,19 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
                     const estadoBadge = getEstadoBadge(match.estado);
                     const team1 = teams.find(t => t.id === match.equipo1_id);
                     const team2 = teams.find(t => t.id === match.equipo2_id);
+                    const fase = match.fase === 'semifinal' ? 'Semifinal' : match.fase === 'final' ? 'FINAL' : 'Grupos';
 
                     return (
-                      <TableRow key={match.id}>
+                      <TableRow key={match.id} className={match.fase === 'final' ? 'bg-yellow-50' : ''}>
+                        <TableCell>
+                          <Badge className={
+                            match.fase === 'final' ? 'bg-yellow-500 text-white' :
+                            match.fase === 'semifinal' ? 'bg-purple-500 text-white' :
+                            'bg-sky-500 text-white'
+                          }>
+                            {fase}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="font-semibold">{match.numero_partido}</TableCell>
                         <TableCell>{getTeamName(match.equipo1_id)}</TableCell>
                         <TableCell>{getTeamName(match.equipo2_id)}</TableCell>
