@@ -23,8 +23,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function BulkPlayerDialog({ open, onOpenChange }) {
   const [players, setPlayers] = useState([
-    { nombre: "", calificacion: 3 },
-    { nombre: "", calificacion: 3 },
+    { nombre: "", calificacion: 3, genero: "masculino" },
+    { nombre: "", calificacion: 3, genero: "masculino" },
   ]);
 
   const queryClient = useQueryClient();
@@ -33,13 +33,13 @@ export default function BulkPlayerDialog({ open, onOpenChange }) {
     mutationFn: (data) => base44.entities.Player.bulkCreate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
-      setPlayers([{ nombre: "", calificacion: 3 }, { nombre: "", calificacion: 3 }]);
+      setPlayers([{ nombre: "", calificacion: 3, genero: "masculino" }, { nombre: "", calificacion: 3, genero: "masculino" }]);
       onOpenChange(false);
     },
   });
 
   const addPlayer = () => {
-    setPlayers([...players, { nombre: "", calificacion: 3 }]);
+    setPlayers([...players, { nombre: "", calificacion: 3, genero: "masculino" }]);
   };
 
   const removePlayer = (index) => {
@@ -64,7 +64,7 @@ export default function BulkPlayerDialog({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="w-5 h-5" />
@@ -76,7 +76,7 @@ export default function BulkPlayerDialog({ open, onOpenChange }) {
             {players.map((player, index) => (
               <Card key={index} className="border-2 border-sky-100">
                 <CardContent className="pt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr,auto,auto] gap-3 items-end">
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr,auto,auto,auto] gap-3 items-end">
                     <div>
                       <Label htmlFor={`nombre-${index}`}>Nombre</Label>
                       <Input
@@ -86,7 +86,22 @@ export default function BulkPlayerDialog({ open, onOpenChange }) {
                         placeholder="Nombre del jugador"
                       />
                     </div>
-                    <div className="w-full md:w-48">
+                    <div className="w-full md:w-32">
+                      <Label htmlFor={`gen-${index}`}>Género</Label>
+                      <Select
+                        value={player.genero}
+                        onValueChange={(value) => updatePlayer(index, 'genero', value)}
+                      >
+                        <SelectTrigger id={`gen-${index}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="masculino">M</SelectItem>
+                          <SelectItem value="femenino">F</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="w-full md:w-32">
                       <Label htmlFor={`cal-${index}`}>Calificación</Label>
                       <Select
                         value={player.calificacion.toString()}

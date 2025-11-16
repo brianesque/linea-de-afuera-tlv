@@ -23,6 +23,9 @@ export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId 
   const handleReorganize = async () => {
     setIsReorganizing(true);
 
+    // Guardar capitanes actuales
+    const previousCaptains = teams.map(team => team.capitan_id);
+
     // Eliminar equipos y partidos anteriores
     for (const team of teams) {
       await base44.entities.Team.delete(team.id);
@@ -33,18 +36,18 @@ export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId 
       await base44.entities.Match.delete(match.id);
     }
 
-    // Obtener jugadores seleccionados
     const selectedPlayers = allPlayers.filter(p => 
       tournament.jugadores_seleccionados.includes(p.id)
     );
 
     const numTeams = tournament.numero_equipos || Math.floor(selectedPlayers.length / tournament.jugadores_por_equipo);
 
-    // Reorganizar con IA
     const playersData = selectedPlayers.map(p => ({
       id: p.id,
       nombre: p.nombre,
       calificacion: p.calificacion,
+      genero: p.genero,
+      is_captain: previousCaptains.includes(p.id)
     }));
 
     const result = await base44.integrations.Core.InvokeLLM({
@@ -55,13 +58,13 @@ Datos:
 - Jugadores por equipo: ${tournament.jugadores_por_equipo}
 - Jugadores disponibles: ${JSON.stringify(playersData)}
 
-Instrucciones:
-1. Crea ${numTeams} equipos equilibrados basándote en las calificaciones (1-5).
-2. Distribuye los jugadores para que el promedio de calificación de cada equipo sea lo más similar posible.
-3. Cada equipo debe tener exactamente ${tournament.jugadores_por_equipo} jugadores.
-4. Selecciona un capitán para cada equipo (el jugador con mayor calificación).
+Instrucciones CRÍTICAS:
+1. Los jugadores marcados como "is_captain: true" DEBEN ser capitanes y estar en equipos DIFERENTES.
+2. Distribuye las MUJERES de manera EQUITATIVA en todos los equipos (mismo número de mujeres por equipo).
+3. Luego equilibra por calificación para que el promedio de cada equipo sea similar.
+4. Cada equipo debe tener exactamente ${tournament.jugadores_por_equipo} jugadores.
 
-Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
+Responde SOLO con el JSON solicitado.`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -114,7 +117,6 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
 
     await base44.entities.Team.bulkCreate(teamsToCreate);
 
-    // Recrear partidos
     const newTeams = await base44.entities.Team.filter({ tournament_id: tournamentId });
     const newMatches = [];
     let matchNumber = 1;
@@ -149,26 +151,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
   };
 
   const handleCopyToClipboard = () => {
-    let text = "EQUIPOS DEL TORNEO\n\n";
-    teams.forEach(team => {
-      const teamPlayers = team.jugadores_ids
-        .map(id => allPlayers.find(p => p.id === id))
-        .filter(Boolean);
-      
-      text += `${team.nombre} (Promedio: ${team.promedio_calificacion})\n`;
-      teamPlayers.forEach(player => {
-        const isCaptain = player.id === team.capitan_id;
-        text += `  ${isCaptain ? '👑 ' : '- '}${player.nombre} (${player.calificacion}★)\n`;
-      });
-      text += '\n';
-    });
-
-    navigator.clipboard.writeText(text);
-    toast.success("¡Copiado al portapapeles!");
-  };
-
-  const handleDownloadCSV = () => {
-    let csv = "Equipo,Jugador,Calificación,Capitán,Promedio Equipo\n";
+    let csv = "Equipo,Jugador,Género,Calificación,Rol,Promedio_Equipo\n";
     
     teams.forEach(team => {
       const teamPlayers = team.jugadores_ids
@@ -176,8 +159,28 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
         .filter(Boolean);
       
       teamPlayers.forEach(player => {
-        const isCaptain = player.id === team.capitan_id ? "Sí" : "No";
-        csv += `"${team.nombre}","${player.nombre}",${player.calificacion},${isCaptain},${team.promedio_calificacion}\n`;
+        const isCaptain = player.id === team.capitan_id ? "Capitán" : "Jugador";
+        const genero = player.genero === "femenino" ? "F" : "M";
+        csv += `"${team.nombre}","${player.nombre}",${genero},${player.calificacion},${isCaptain},${team.promedio_calificacion}\n`;
+      });
+    });
+
+    navigator.clipboard.writeText(csv);
+    toast.success("¡CSV copiado al portapapeles!");
+  };
+
+  const handleDownloadCSV = () => {
+    let csv = "Equipo,Jugador,Género,Calificación,Rol,Promedio_Equipo\n";
+    
+    teams.forEach(team => {
+      const teamPlayers = team.jugadores_ids
+        .map(id => allPlayers.find(p => p.id === id))
+        .filter(Boolean);
+      
+      teamPlayers.forEach(player => {
+        const isCaptain = player.id === team.capitan_id ? "Capitán" : "Jugador";
+        const genero = player.genero === "femenino" ? "F" : "M";
+        csv += `"${team.nombre}","${player.nombre}",${genero},${player.calificacion},${isCaptain},${team.promedio_calificacion}\n`;
       });
     });
 
@@ -198,21 +201,21 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
         <CardContent className="pt-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex gap-2">
-              <div className="flex border-2 border-gray-200 rounded-lg overflow-hidden">
+              <div className="flex border-2 border-gray-300 rounded-lg overflow-hidden">
                 <Button
-                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  variant="ghost"
                   size="sm"
                   onClick={() => setViewMode("cards")}
-                  className="rounded-none"
+                  className={`rounded-none ${viewMode === "cards" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
                 >
                   <LayoutGrid className="w-4 h-4 mr-2" />
                   Cards
                 </Button>
                 <Button
-                  variant={viewMode === "table" ? "default" : "ghost"}
+                  variant="ghost"
                   size="sm"
                   onClick={() => setViewMode("table")}
-                  className="rounded-none"
+                  className={`rounded-none ${viewMode === "table" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
                 >
                   <Table2 className="w-4 h-4 mr-2" />
                   Tabla
@@ -227,7 +230,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                 onClick={handleCopyToClipboard}
               >
                 <Copy className="w-4 h-4 mr-2" />
-                Copiar
+                Copiar CSV
               </Button>
               <Button
                 variant="outline"
@@ -305,6 +308,9 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                               <span className={`font-semibold ${isCaptain ? 'text-amber-900' : 'text-gray-900'}`}>
                                 {player.nombre}
                               </span>
+                              <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                                {player.genero === "femenino" ? "F" : "M"}
+                              </Badge>
                             </div>
                             <div className="flex items-center gap-1">
                               {[...Array(player.calificacion)].map((_, i) => (
@@ -329,9 +335,10 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                     <TableRow className="bg-gradient-to-r from-sky-100 to-blue-100">
                       <TableHead className="font-bold">Equipo</TableHead>
                       <TableHead className="font-bold">Jugador</TableHead>
+                      <TableHead className="font-bold">Género</TableHead>
                       <TableHead className="font-bold">Calificación</TableHead>
                       <TableHead className="font-bold">Rol</TableHead>
-                      <TableHead className="font-bold">Promedio Equipo</TableHead>
+                      <TableHead className="font-bold">Promedio</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -351,6 +358,11 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
                             )}
                             <TableCell className={isCaptain ? "font-semibold text-amber-900" : ""}>
                               {player.nombre}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={`${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                                {player.genero === "femenino" ? "F" : "M"}
+                              </Badge>
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-1">

@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -27,7 +28,7 @@ export default function Players() {
   const [showDialog, setShowDialog] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
-  const [formData, setFormData] = useState({ nombre: "", calificacion: 3 });
+  const [formData, setFormData] = useState({ nombre: "", calificacion: 3, genero: "masculino" });
   const [viewMode, setViewMode] = useState("grid");
 
   const queryClient = useQueryClient();
@@ -43,7 +44,7 @@ export default function Players() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowDialog(false);
-      setFormData({ nombre: "", calificacion: 3 });
+      setFormData({ nombre: "", calificacion: 3, genero: "masculino" });
     },
   });
 
@@ -53,7 +54,7 @@ export default function Players() {
       queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowDialog(false);
       setEditingPlayer(null);
-      setFormData({ nombre: "", calificacion: 3 });
+      setFormData({ nombre: "", calificacion: 3, genero: "masculino" });
     },
   });
 
@@ -79,13 +80,13 @@ export default function Players() {
 
   const openEditDialog = (player) => {
     setEditingPlayer(player);
-    setFormData({ nombre: player.nombre, calificacion: player.calificacion });
+    setFormData({ nombre: player.nombre, calificacion: player.calificacion, genero: player.genero || "masculino" });
     setShowDialog(true);
   };
 
   const openCreateDialog = () => {
     setEditingPlayer(null);
-    setFormData({ nombre: "", calificacion: 3 });
+    setFormData({ nombre: "", calificacion: 3, genero: "masculino" });
     setShowDialog(true);
   };
 
@@ -101,7 +102,6 @@ export default function Players() {
           </p>
         </div>
 
-        {/* Search, View Toggle and Add */}
         <Card className="mb-6 border-2 border-orange-100 shadow-lg">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-4">
@@ -115,20 +115,20 @@ export default function Players() {
                 />
               </div>
               <div className="flex gap-2">
-                <div className="flex border-2 border-gray-200 rounded-lg overflow-hidden">
+                <div className="flex border-2 border-gray-300 rounded-lg overflow-hidden">
                   <Button
-                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    variant="ghost"
                     size="icon"
                     onClick={() => setViewMode("grid")}
-                    className="rounded-none"
+                    className={`rounded-none h-12 w-12 ${viewMode === "grid" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
                   >
                     <LayoutGrid className="w-5 h-5" />
                   </Button>
                   <Button
-                    variant={viewMode === "list" ? "default" : "ghost"}
+                    variant="ghost"
                     size="icon"
                     onClick={() => setViewMode("list")}
-                    className="rounded-none"
+                    className={`rounded-none h-12 w-12 ${viewMode === "list" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
                   >
                     <List className="w-5 h-5" />
                   </Button>
@@ -191,9 +191,14 @@ export default function Players() {
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg font-bold text-gray-900">
-                      {player.nombre}
-                    </CardTitle>
+                    <div className="flex-1">
+                      <CardTitle className="text-lg font-bold text-gray-900">
+                        {player.nombre}
+                      </CardTitle>
+                      <Badge className={`mt-2 ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                        {player.genero === "femenino" ? "Femenino" : "Masculino"}
+                      </Badge>
+                    </div>
                     <div className="flex gap-1">
                       <Button
                         size="icon"
@@ -248,7 +253,12 @@ export default function Players() {
                         {player.nombre[0].toUpperCase()}
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-gray-900">{player.nombre}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-gray-900">{player.nombre}</p>
+                          <Badge className={`${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                            {player.genero === "femenino" ? "F" : "M"}
+                          </Badge>
+                        </div>
                         <div className="flex gap-1 mt-1">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star
@@ -288,7 +298,6 @@ export default function Players() {
           </Card>
         )}
 
-        {/* Create/Edit Dialog */}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogContent>
             <DialogHeader>
@@ -307,6 +316,21 @@ export default function Players() {
                     placeholder="Ej: Juan Pérez"
                     required
                   />
+                </div>
+                <div>
+                  <Label htmlFor="genero">Género</Label>
+                  <Select
+                    value={formData.genero}
+                    onValueChange={(value) => setFormData({ ...formData, genero: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="femenino">Femenino</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="calificacion">
@@ -348,7 +372,6 @@ export default function Players() {
           </DialogContent>
         </Dialog>
 
-        {/* Bulk Player Dialog */}
         <BulkPlayerDialog 
           open={showBulkDialog} 
           onOpenChange={setShowBulkDialog}

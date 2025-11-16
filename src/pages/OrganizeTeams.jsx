@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -90,6 +91,7 @@ export default function OrganizeTeams() {
       id: p.id,
       nombre: p.nombre,
       calificacion: p.calificacion,
+      genero: p.genero,
       is_captain: captains.includes(p.id)
     }));
 
@@ -101,10 +103,10 @@ Datos:
 - Jugadores por equipo: ${tournament.jugadores_por_equipo}
 - Jugadores disponibles: ${JSON.stringify(playersData)}
 
-Instrucciones:
-1. Crea ${numTeams} equipos equilibrados basándote en las calificaciones (1-5).
-2. Los jugadores marcados como "is_captain: true" DEBEN ser capitanes y estar en equipos diferentes.
-3. Distribuye el resto de jugadores para que el promedio de calificación de cada equipo sea lo más similar posible.
+Instrucciones CRÍTICAS (en orden de prioridad):
+1. Los jugadores marcados como "is_captain: true" DEBEN ser capitanes y estar en equipos DIFERENTES.
+2. Distribuye las MUJERES de manera EQUITATIVA en todos los equipos (cada equipo debe tener el mismo número de mujeres, o diferencia de máximo 1).
+3. Después equilibra por CALIFICACIÓN para que el promedio de cada equipo sea lo más similar posible.
 4. Cada equipo debe tener exactamente ${tournament.jugadores_por_equipo} jugadores.
 
 Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
