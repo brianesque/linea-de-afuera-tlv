@@ -1,7 +1,8 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Trophy, Users, Plus, Home } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { Trophy, Users, Plus, Home, Shield, LogOut, BarChart3 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,25 +13,62 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-
-const navigationItems = [
-  {
-    title: "Inicio",
-    url: createPageUrl("Home"),
-    icon: Home,
-  },
-  {
-    title: "Jugadores",
-    url: createPageUrl("Players"),
-    icon: Users,
-  },
-];
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [isGuest, setIsGuest] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const guestStatus = localStorage.getItem('isGuest') === 'true';
+      setIsGuest(guestStatus);
+      
+      if (!guestStatus) {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const userData = await base44.auth.me();
+          setUser(userData);
+        } else {
+          navigate(createPageUrl("Login"));
+        }
+      }
+      setLoading(false);
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('isGuest');
+    base44.auth.logout(createPageUrl("Login"));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  const isAdmin = !isGuest && user?.is_tournament_admin === true;
+
+  const navigationItems = [
+    { title: "Inicio", url: createPageUrl("Home"), icon: Home, public: true },
+    { title: "Estadísticas", url: createPageUrl("PlayerStats"), icon: BarChart3, public: true },
+    { title: "Jugadores", url: createPageUrl("Players"), icon: Users, adminOnly: true },
+    { title: "Administradores", url: createPageUrl("Admins"), icon: Shield, adminOnly: true },
+  ];
+
+  const visibleItems = navigationItems.filter(item => item.public || (item.adminOnly && isAdmin));
 
   return (
     <SidebarProvider>
@@ -62,7 +100,7 @@ export default function Layout({ children, currentPageName }) {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.map((item) => (
+                  {visibleItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -81,6 +119,36 @@ export default function Layout({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
+
+          <SidebarFooter className="border-t border-orange-200/50 p-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                  {isGuest ? 'I' : user?.full_name?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm truncate">
+                    {isGuest ? 'Invitado' : user?.full_name || 'Usuario'}
+                  </p>
+                  {isAdmin && (
+                    <Badge className="bg-orange-500 text-white text-xs mt-1">
+                      <Shield className="w-3 h-3 mr-1" />
+                      Admin
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="w-full border-red-200 text-red-600 hover:bg-red-50"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar Sesión
+              </Button>
+            </div>
+          </SidebarFooter>
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
