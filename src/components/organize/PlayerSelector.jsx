@@ -1,11 +1,12 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Search, Users, Star, AlertCircle, LayoutGrid, List, CheckCircle2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Search, Users, Star, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { LayoutGrid, Table2 } from "lucide-react";
+import { useState } from "react";
 
 export default function PlayerSelector({
   allPlayers,
@@ -17,11 +18,11 @@ export default function PlayerSelector({
   playersPerTeam,
   onContinue
 }) {
-  const [viewMode, setViewMode] = React.useState("grid");
-  const requiredPlayers = numTeams * playersPerTeam;
-  const canContinue = selectedPlayerIds.length === requiredPlayers;
-  const hasExtra = selectedPlayerIds.length > requiredPlayers;
-  const needsMore = selectedPlayerIds.length < requiredPlayers;
+  const [viewMode, setViewMode] = useState("table");
+
+  const totalPlayersNeeded = numTeams * playersPerTeam;
+  const hasCorrectAmount = selectedPlayerIds.length === totalPlayersNeeded;
+  const difference = selectedPlayerIds.length - totalPlayersNeeded;
 
   return (
     <div className="space-y-6">
@@ -32,116 +33,126 @@ export default function PlayerSelector({
             Seleccionar Jugadores
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
-          <div className="flex gap-3 mb-6">
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Buscar jugador..."
+                placeholder="Buscar jugadores..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-12"
+                className="pl-10"
               />
             </div>
-            <div className="flex border-2 border-gray-200 rounded-lg overflow-hidden">
+            <div className="flex border-2 border-gray-300 rounded-lg overflow-hidden">
               <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="icon"
+                variant="ghost"
+                size="sm"
                 onClick={() => setViewMode("grid")}
-                className="rounded-none h-12 w-12"
+                className={`rounded-none ${viewMode === "grid" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
               >
-                <LayoutGrid className="w-5 h-5" />
+                <LayoutGrid className="w-4 h-4" />
               </Button>
               <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="icon"
-                onClick={() => setViewMode("list")}
-                className="rounded-none h-12 w-12"
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode("table")}
+                className={`rounded-none ${viewMode === "table" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
               >
-                <List className="w-5 h-5" />
+                <Table2 className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
-          <div className={`mb-6 p-4 rounded-lg border-2 ${
-            canContinue ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300' : 
-            hasExtra ? 'bg-gradient-to-r from-red-50 to-pink-50 border-red-300' :
-            'bg-gradient-to-r from-amber-50 to-orange-50 border-orange-200'
-          }`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-gray-900">
-                  {selectedPlayerIds.length} / {requiredPlayers} jugadores seleccionados
+          <div className="bg-sky-50 border-2 border-sky-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Users className="w-5 h-5 text-sky-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900 mb-1">
+                  {selectedPlayerIds.length} de {totalPlayersNeeded} jugadores seleccionados
                 </p>
                 <p className="text-sm text-gray-600">
-                  Se formarán {numTeams} equipos de {playersPerTeam} jugadores
+                  Necesitas exactamente {totalPlayersNeeded} jugadores ({numTeams} equipos × {playersPerTeam} jugadores)
                 </p>
               </div>
-              {canContinue ? (
-                <CheckCircle2 className="w-8 h-8 text-green-600" />
-              ) : (
-                <AlertCircle className="w-8 h-8 text-orange-500" />
-              )}
             </div>
           </div>
 
-          {needsMore && (
-            <Alert className="mb-6 border-yellow-300 bg-yellow-50">
-              <AlertCircle className="h-4 w-4 text-yellow-600" />
-              <AlertDescription className="text-yellow-800">
-                Faltan {requiredPlayers - selectedPlayerIds.length} jugadores. Necesitas exactamente {requiredPlayers} jugadores.
-              </AlertDescription>
-            </Alert>
+          {!hasCorrectAmount && selectedPlayerIds.length > 0 && (
+            <div className={`border-2 rounded-lg p-4 ${
+              difference > 0 
+                ? 'bg-yellow-50 border-yellow-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <div className="flex items-start gap-3">
+                <AlertTriangle className={`w-5 h-5 mt-0.5 ${
+                  difference > 0 ? 'text-yellow-600' : 'text-red-600'
+                }`} />
+                <div>
+                  <p className={`font-semibold ${
+                    difference > 0 ? 'text-yellow-900' : 'text-red-900'
+                  }`}>
+                    {difference > 0 
+                      ? `Tienes ${difference} jugador${difference > 1 ? 'es' : ''} de más` 
+                      : `Te faltan ${Math.abs(difference)} jugador${Math.abs(difference) > 1 ? 'es' : ''}`
+                    }
+                  </p>
+                  <p className={`text-sm ${
+                    difference > 0 ? 'text-yellow-700' : 'text-red-700'
+                  }`}>
+                    {difference > 0 
+                      ? 'Deselecciona algunos jugadores para continuar' 
+                      : 'Selecciona más jugadores para continuar'
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
+        </CardContent>
+      </Card>
 
-          {hasExtra && (
-            <Alert className="mb-6 border-red-300 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">
-                Tienes {selectedPlayerIds.length - requiredPlayers} jugadores de más. Necesitas exactamente {requiredPlayers} jugadores.
-              </AlertDescription>
-            </Alert>
-          )}
-
+      <Card className="border-2 border-gray-200">
+        <CardContent className="pt-6">
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {allPlayers.map((player) => {
                 const isSelected = selectedPlayerIds.includes(player.id);
                 return (
                   <Card
                     key={player.id}
-                    className={`cursor-pointer transition-all duration-200 relative ${
+                    className={`cursor-pointer transition-all ${
                       isSelected
-                        ? 'border-2 border-sky-500 bg-sky-50'
-                        : 'border border-gray-200 hover:border-sky-300'
+                        ? "border-2 border-sky-500 bg-sky-50"
+                        : "border-2 border-gray-200 hover:border-gray-300"
                     }`}
                     onClick={() => onPlayerToggle(player.id)}
                   >
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-sky-500 rounded-full flex items-center justify-center">
-                        <CheckCircle2 className="w-4 h-4 text-white" />
-                      </div>
-                    )}
                     <CardContent className="pt-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => onPlayerToggle(player.id)}
-                          className="mt-1"
-                        />
+                        <Checkbox checked={isSelected} className="mt-1" />
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900">{player.nombre}</p>
-                          <div className="flex items-center gap-1 mt-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`w-4 h-4 ${
-                                  star <= player.calificacion
-                                    ? "fill-yellow-400 text-yellow-400"
-                                    : "text-gray-300"
-                                }`}
-                              />
-                            ))}
+                          <p className="font-semibold text-gray-900">
+                            {player.nombre}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge
+                              className={
+                                player.genero === "femenino"
+                                  ? "bg-pink-100 text-pink-800"
+                                  : "bg-blue-100 text-blue-800"
+                              }
+                            >
+                              {player.genero === "femenino" ? "F" : "M"}
+                            </Badge>
+                            <div className="flex gap-0.5">
+                              {[...Array(player.calificacion)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                                />
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -151,42 +162,78 @@ export default function PlayerSelector({
               })}
             </div>
           ) : (
-            <div className="border-2 border-sky-100 rounded-lg overflow-hidden max-h-[500px] overflow-y-auto">
-              {allPlayers.map((player) => {
-                const isSelected = selectedPlayerIds.includes(player.id);
-                return (
-                  <div
-                    key={player.id}
-                    className={`flex items-center gap-4 p-4 border-b border-gray-200 cursor-pointer transition-colors relative ${
-                      isSelected ? 'bg-sky-50' : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() => onPlayerToggle(player.id)}
-                  >
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => onPlayerToggle(player.id)}
-                    />
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{player.nombre}</p>
-                      <div className="flex gap-1 mt-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`w-4 h-4 ${
-                              star <= player.calificacion
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <CheckCircle2 className="w-5 h-5 text-sky-500" />
-                    )}
-                  </div>
-                );
-              })}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="text-left p-3 font-semibold text-gray-700">
+                      <Checkbox
+                        checked={allPlayers.length > 0 && selectedPlayerIds.length === allPlayers.length}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            allPlayers.forEach(p => {
+                              if (!selectedPlayerIds.includes(p.id)) {
+                                onPlayerToggle(p.id);
+                              }
+                            });
+                          } else {
+                            allPlayers.forEach(p => {
+                              if (selectedPlayerIds.includes(p.id)) {
+                                onPlayerToggle(p.id);
+                              }
+                            });
+                          }
+                        }}
+                      />
+                    </th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Nombre</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Género</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Nivel</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allPlayers.map((player) => {
+                    const isSelected = selectedPlayerIds.includes(player.id);
+                    return (
+                      <tr
+                        key={player.id}
+                        className={`border-b border-gray-100 cursor-pointer transition-colors ${
+                          isSelected ? "bg-sky-50" : "hover:bg-gray-50"
+                        }`}
+                        onClick={() => onPlayerToggle(player.id)}
+                      >
+                        <td className="p-3">
+                          <Checkbox checked={isSelected} />
+                        </td>
+                        <td className="p-3 font-medium text-gray-900">
+                          {player.nombre}
+                        </td>
+                        <td className="p-3">
+                          <Badge
+                            className={
+                              player.genero === "femenino"
+                                ? "bg-pink-100 text-pink-800"
+                                : "bg-blue-100 text-blue-800"
+                            }
+                          >
+                            {player.genero === "femenino" ? "Femenino" : "Masculino"}
+                          </Badge>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex gap-0.5">
+                            {[...Array(player.calificacion)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                              />
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
@@ -196,10 +243,10 @@ export default function PlayerSelector({
         <Button
           size="lg"
           onClick={onContinue}
-          disabled={!canContinue}
-          className={`${canContinue ? 'bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700' : 'bg-slate-300 cursor-not-allowed'}`}
+          disabled={!hasCorrectAmount}
+          className="bg-sky-600 hover:bg-sky-700"
         >
-          Continuar a Capitanes
+          Continuar
         </Button>
       </div>
     </div>

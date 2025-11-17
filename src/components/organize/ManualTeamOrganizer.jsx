@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Crown, Star, Users, TrendingUp, Check, Pencil } from "lucide-react";
+import { Crown, Star, Users, TrendingUp, Check, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function ManualTeamOrganizer({ 
@@ -17,6 +17,7 @@ export default function ManualTeamOrganizer({
   playersData
 }) {
   const [editingTeamId, setEditingTeamId] = useState(null);
+  const [collapsedTeams, setCollapsedTeams] = useState({});
   const [teamNames, setTeamNames] = useState(() => {
     const names = {};
     teams.forEach(team => {
@@ -39,6 +40,13 @@ export default function ManualTeamOrganizer({
     return playersData.find(p => p.id === playerId);
   };
 
+  const toggleTeamCollapse = (teamId) => {
+    setCollapsedTeams(prev => ({
+      ...prev,
+      [teamId]: !prev[teamId]
+    }));
+  };
+
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
 
@@ -46,7 +54,6 @@ export default function ManualTeamOrganizer({
     if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
     const playerId = draggableId;
-    const player = getPlayerById(playerId);
     
     // No permitir mover capitanes
     const sourceTeam = teams.find(t => t.id === source.droppableId);
@@ -54,13 +61,14 @@ export default function ManualTeamOrganizer({
       return;
     }
 
+    let updatedTeams = [...teams];
+    let updatedUnassigned = [...unassignedPlayers];
+
     // Remover del origen
     if (source.droppableId === 'unassigned') {
-      const newUnassigned = [...unassignedPlayers];
-      newUnassigned.splice(source.index, 1);
-      onUnassignedChange(newUnassigned);
+      updatedUnassigned.splice(source.index, 1);
     } else {
-      const newTeams = teams.map(team => {
+      updatedTeams = updatedTeams.map(team => {
         if (team.id === source.droppableId) {
           const newPlayerIds = [...team.jugadores_ids];
           newPlayerIds.splice(source.index, 1);
@@ -68,16 +76,13 @@ export default function ManualTeamOrganizer({
         }
         return team;
       });
-      onTeamsChange(newTeams);
     }
 
     // Agregar al destino
     if (destination.droppableId === 'unassigned') {
-      const newUnassigned = [...unassignedPlayers];
-      newUnassigned.splice(destination.index, 0, playerId);
-      onUnassignedChange(newUnassigned);
+      updatedUnassigned.splice(destination.index, 0, playerId);
     } else {
-      const newTeams = teams.map(team => {
+      updatedTeams = updatedTeams.map(team => {
         if (team.id === destination.droppableId) {
           const newPlayerIds = [...team.jugadores_ids];
           newPlayerIds.splice(destination.index, 0, playerId);
@@ -85,8 +90,10 @@ export default function ManualTeamOrganizer({
         }
         return team;
       });
-      onTeamsChange(newTeams);
     }
+
+    onTeamsChange(updatedTeams);
+    onUnassignedChange(updatedUnassigned);
   };
 
   const handleTeamNameChange = (teamId, newName) => {
@@ -127,7 +134,8 @@ export default function ManualTeamOrganizer({
       </Card>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Versión Desktop */}
+        <div className="hidden lg:grid lg:grid-cols-3 gap-6">
           {/* Jugadores sin asignar */}
           <div className="lg:col-span-1">
             <Card className="border-2 border-gray-300">
@@ -192,12 +200,11 @@ export default function ManualTeamOrganizer({
             </Card>
           </div>
 
-          {/* Equipos */}
+          {/* Equipos Desktop */}
           <div className="lg:col-span-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {teams.map((team) => {
                 const promedio = calculateTeamAverage(team.jugadores_ids);
-                const captain = getPlayerById(team.capitan_id);
 
                 return (
                   <Card key={team.id} className="border-2 border-sky-200">
@@ -309,6 +316,194 @@ export default function ManualTeamOrganizer({
               })}
             </div>
           </div>
+        </div>
+
+        {/* Versión Mobile - Tabla */}
+        <div className="lg:hidden space-y-4">
+          {/* Sin asignar Mobile */}
+          <Card className="border-2 border-gray-300">
+            <CardHeader 
+              className="bg-gray-100 cursor-pointer"
+              onClick={() => toggleTeamCollapse('unassigned')}
+            >
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Users className="w-5 h-5" />
+                  Sin Asignar ({unassignedPlayers.length})
+                </CardTitle>
+                {collapsedTeams['unassigned'] ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+              </div>
+            </CardHeader>
+            {!collapsedTeams['unassigned'] && (
+              <CardContent className="pt-4">
+                <Droppable droppableId="unassigned">
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`min-h-[100px] ${snapshot.isDraggingOver ? 'bg-gray-50 rounded-lg' : ''}`}
+                    >
+                      <div className="space-y-1">
+                        {unassignedPlayers.map((playerId, index) => {
+                          const player = getPlayerById(playerId);
+                          if (!player) return null;
+                          
+                          return (
+                            <Draggable key={playerId} draggableId={playerId} index={index}>
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={`p-2 bg-white border border-gray-200 rounded flex items-center justify-between ${snapshot.isDragging ? 'shadow-lg' : ''}`}
+                                >
+                                  <span className="font-semibold text-sm">{player.nombre}</span>
+                                  <div className="flex items-center gap-2">
+                                    <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800 text-xs" : "bg-blue-100 text-blue-800 text-xs"}>
+                                      {player.genero === "femenino" ? "F" : "M"}
+                                    </Badge>
+                                    <div className="flex gap-0.5">
+                                      {[...Array(player.calificacion)].map((_, i) => (
+                                        <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </Draggable>
+                          );
+                        })}
+                      </div>
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Equipos Mobile */}
+          {teams.map((team) => {
+            const promedio = calculateTeamAverage(team.jugadores_ids);
+
+            return (
+              <Card key={team.id} className="border-2 border-sky-200">
+                <Droppable droppableId={team.id}>
+                  {(provided, snapshot) => (
+                    <>
+                      <CardHeader 
+                        className={`bg-gradient-to-r from-sky-50 to-blue-50 cursor-pointer ${snapshot.isDraggingOver ? 'bg-sky-100' : ''}`}
+                        onClick={() => toggleTeamCollapse(team.id)}
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            {editingTeamId === team.id ? (
+                              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                <Input
+                                  value={teamNames[team.id]}
+                                  onChange={(e) => handleTeamNameChange(team.id, e.target.value)}
+                                  className="text-sm"
+                                  autoFocus
+                                />
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveTeamName(team.id)}
+                                  className="bg-green-500 hover:bg-green-600"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-sm">{team.nombre}</CardTitle>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingTeamId(team.id);
+                                  }}
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge className="bg-sky-600 text-white text-xs">
+                                <TrendingUp className="w-2 h-2 mr-1" />
+                                {promedio}
+                              </Badge>
+                              <Badge className="bg-gray-600 text-white text-xs">
+                                {team.jugadores_ids.length}
+                              </Badge>
+                            </div>
+                          </div>
+                          {collapsedTeams[team.id] ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+                        </div>
+                        {snapshot.isDraggingOver && (
+                          <div className="absolute inset-0 bg-sky-200 opacity-30 rounded-t-lg pointer-events-none" />
+                        )}
+                      </CardHeader>
+                      {!collapsedTeams[team.id] && (
+                        <CardContent className="pt-4">
+                          <div className="space-y-1">
+                            {team.jugadores_ids.map((playerId, index) => {
+                              const player = getPlayerById(playerId);
+                              if (!player) return null;
+                              
+                              const isCaptain = playerId === team.capitan_id;
+
+                              return (
+                                <Draggable 
+                                  key={playerId} 
+                                  draggableId={playerId} 
+                                  index={index}
+                                  isDragDisabled={isCaptain}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`p-2 rounded border flex items-center justify-between ${
+                                        isCaptain 
+                                          ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-300 cursor-not-allowed' 
+                                          : `bg-white border-gray-200 ${snapshot.isDragging ? 'shadow-lg' : ''}`
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        {isCaptain && <Crown className="w-3 h-3 text-amber-600" />}
+                                        <span className={`font-semibold text-sm ${isCaptain ? 'text-amber-900' : ''}`}>
+                                          {player.nombre}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800 text-xs" : "bg-blue-100 text-blue-800 text-xs"}>
+                                          {player.genero === "femenino" ? "F" : "M"}
+                                        </Badge>
+                                        <div className="flex gap-0.5">
+                                          {[...Array(player.calificacion)].map((_, i) => (
+                                            <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      )}
+                      {provided.placeholder}
+                    </>
+                  )}
+                </Droppable>
+              </Card>
+            );
+          })}
         </div>
       </DragDropContext>
 
