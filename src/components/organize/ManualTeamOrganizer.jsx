@@ -14,7 +14,8 @@ export default function ManualTeamOrganizer({
   onBack,
   onConfirm,
   isConfirming,
-  playersData
+  playersData,
+  playersPerTeam
 }) {
   const [editingTeamId, setEditingTeamId] = useState(null);
   const [collapsedTeams, setCollapsedTeams] = useState({});
@@ -120,8 +121,7 @@ export default function ManualTeamOrganizer({
   const allPlayersAssigned = unassignedPlayers.length === 0;
   
   // Verificar que todos los equipos tengan la cantidad correcta de jugadores
-  const playersPerTeam = teams[0]?.jugadores_ids?.length || 0;
-  const allTeamsComplete = teams.every(team => team.jugadores_ids.length === playersPerTeam) && playersPerTeam > 0;
+  const allTeamsComplete = teams.every(team => team.jugadores_ids.length === playersPerTeam);
 
   return (
     <div className="space-y-6">
@@ -137,6 +137,13 @@ export default function ManualTeamOrganizer({
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <p className="text-sm text-yellow-800">
                 ⚠️ Quedan {unassignedPlayers.length} jugador(es) sin asignar
+              </p>
+            </div>
+          )}
+          {allPlayersAssigned && !allTeamsComplete && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-800">
+                ⚠️ Todos los equipos deben tener exactamente {playersPerTeam} jugadores
               </p>
             </div>
           )}

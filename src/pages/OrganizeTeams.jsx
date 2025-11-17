@@ -403,6 +403,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
             onConfirm={handleConfirmTeams}
             isConfirming={isOrganizing}
             playersData={selectedPlayers}
+            playersPerTeam={tournament.jugadores_por_equipo}
           />
         )}
 
@@ -417,6 +418,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
               onConfirm={handleConfirmTeams}
               isConfirming={isOrganizing}
               playersData={selectedPlayers}
+              playersPerTeam={tournament.jugadores_por_equipo}
             />
           </div>
         )}
