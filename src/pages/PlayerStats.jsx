@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -19,7 +20,7 @@ import {
 export default function PlayerStats() {
   const [searchTerm, setSearchTerm] = useState("");
   const [generoFilter, setGeneroFilter] = useState("todos");
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode, setViewMode] = useState("table");
   const [sortBy, setSortBy] = useState("nombre");
 
   const { data: players, isLoading } = useQuery({

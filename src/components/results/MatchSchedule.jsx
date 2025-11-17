@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import {
 import MatchResultInput from "./MatchResultInput";
 
 export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
-  const [viewMode, setViewMode] = useState("cards");
+  const [viewMode, setViewMode] = useState("table");
 
   const matchesByPhase = useMemo(() => {
     return {

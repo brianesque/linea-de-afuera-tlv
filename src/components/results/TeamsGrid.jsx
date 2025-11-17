@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner";
 
 export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId, winnerTeamId }) {
-  const [viewMode, setViewMode] = useState("cards");
+  const [viewMode, setViewMode] = useState("table");
   const [isReorganizing, setIsReorganizing] = useState(false);
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
