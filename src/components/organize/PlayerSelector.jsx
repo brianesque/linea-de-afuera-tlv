@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,9 @@ export default function PlayerSelector({
 }) {
   const [viewMode, setViewMode] = React.useState("grid");
   const requiredPlayers = numTeams * playersPerTeam;
-  const canContinue = selectedPlayerIds.length >= requiredPlayers;
+  const canContinue = selectedPlayerIds.length === requiredPlayers;
+  const hasExtra = selectedPlayerIds.length > requiredPlayers;
+  const needsMore = selectedPlayerIds.length < requiredPlayers;
 
   return (
     <div className="space-y-6">
@@ -60,7 +63,11 @@ export default function PlayerSelector({
             </div>
           </div>
 
-          <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border-2 border-orange-200">
+          <div className={`mb-6 p-4 rounded-lg border-2 ${
+            canContinue ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300' : 
+            hasExtra ? 'bg-gradient-to-r from-red-50 to-pink-50 border-red-300' :
+            'bg-gradient-to-r from-amber-50 to-orange-50 border-orange-200'
+          }`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold text-gray-900">
@@ -70,17 +77,28 @@ export default function PlayerSelector({
                   Se formarán {numTeams} equipos de {playersPerTeam} jugadores
                 </p>
               </div>
-              {!canContinue && (
+              {canContinue ? (
+                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              ) : (
                 <AlertCircle className="w-8 h-8 text-orange-500" />
               )}
             </div>
           </div>
 
-          {!canContinue && (
+          {needsMore && (
             <Alert className="mb-6 border-yellow-300 bg-yellow-50">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-yellow-800">
-                Necesitas seleccionar al menos {requiredPlayers} jugadores para formar {numTeams} equipos completos.
+                Faltan {requiredPlayers - selectedPlayerIds.length} jugadores. Necesitas exactamente {requiredPlayers} jugadores.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {hasExtra && (
+            <Alert className="mb-6 border-red-300 bg-red-50">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                Tienes {selectedPlayerIds.length - requiredPlayers} jugadores de más. Necesitas exactamente {requiredPlayers} jugadores.
               </AlertDescription>
             </Alert>
           )}
@@ -179,7 +197,7 @@ export default function PlayerSelector({
           size="lg"
           onClick={onContinue}
           disabled={!canContinue}
-          className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700"
+          className={`${canContinue ? 'bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700' : 'bg-slate-300 cursor-not-allowed'}`}
         >
           Continuar a Capitanes
         </Button>
