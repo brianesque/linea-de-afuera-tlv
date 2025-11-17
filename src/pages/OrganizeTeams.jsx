@@ -213,6 +213,18 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
   const handleConfirmTeams = async () => {
     setIsOrganizing(true);
 
+    // Borrar equipos existentes si los hay
+    const existingTeams = await base44.entities.Team.filter({ tournament_id: tournamentId });
+    for (const team of existingTeams) {
+      await base44.entities.Team.delete(team.id);
+    }
+
+    // Borrar partidos existentes si los hay
+    const existingMatches = await base44.entities.Match.filter({ tournament_id: tournamentId });
+    for (const match of existingMatches) {
+      await base44.entities.Match.delete(match.id);
+    }
+
     const playersData = selectedPlayers.map(p => ({
       id: p.id,
       calificacion: p.calificacion
