@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,6 +18,8 @@ import MatchSchedule from "../components/results/MatchSchedule";
 import StandingsTable from "../components/results/StandingsTable";
 import FinishTournamentDialog from "../components/results/FinishTournamentDialog";
 import PlayoffDialog from "../components/results/PlayoffDialog";
+import TournamentChat from "../components/tournament/TournamentChat";
+import TournamentComments from "../components/tournament/TournamentComments";
 
 export default function TournamentDetail() {
   const navigate = useNavigate();
@@ -236,6 +239,9 @@ export default function TournamentDetail() {
     tournament.jugadores_seleccionados?.includes(p.id)
   );
 
+  const showChat = tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados' || tournament.estado === 'configuracion';
+  const showComments = tournament.estado === 'finalizado';
+
   return (
     <div className="min-h-screen p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -297,7 +303,7 @@ export default function TournamentDetail() {
         </div>
 
         <Tabs defaultValue="info" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 bg-white border border-slate-200 h-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 bg-white border border-slate-200 h-auto">
             <TabsTrigger 
               value="info" 
               className="text-xs py-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:font-bold"
@@ -326,12 +332,18 @@ export default function TournamentDetail() {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="fixture" 
-                  className="text-xs py-2 col-span-2 sm:col-span-1 data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:font-bold"
+                  className="text-xs py-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:font-bold"
                 >
                   Fixture
                 </TabsTrigger>
               </>
             )}
+            <TabsTrigger 
+              value="communication" 
+              className="text-xs py-2 col-span-2 sm:col-span-1 data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:font-bold"
+            >
+              {showChat ? "Chat" : "Comentarios"}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="info">
@@ -566,6 +578,14 @@ export default function TournamentDetail() {
               </TabsContent>
             </>
           )}
+
+          <TabsContent value="communication">
+            {showChat ? (
+              <TournamentChat tournamentId={tournamentId} user={user} />
+            ) : showComments ? (
+              <TournamentComments tournamentId={tournamentId} user={user} />
+            ) : null}
+          </TabsContent>
         </Tabs>
       </div>
     </div>
