@@ -1,16 +1,14 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, Search, Sparkles, Crown } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import PlayerSelector from "../components/organize/PlayerSelector";
 import CaptainSelector from "../components/organize/CaptainSelector";
+import OrganizationMethodSelector from "../components/organize/OrganizationMethodSelector";
+import ManualTeamOrganizer from "../components/organize/ManualTeamOrganizer";
 
 export default function OrganizeTeams() {
   const navigate = useNavigate();
@@ -22,6 +20,9 @@ export default function OrganizeTeams() {
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
   const [captains, setCaptains] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [organizationMethod, setOrganizationMethod] = useState(null);
+  const [teams, setTeams] = useState([]);
+  const [unassignedPlayers, setUnassignedPlayers] = useState([]);
   const [isOrganizing, setIsOrganizing] = useState(false);
 
   const { data: tournament } = useQuery({
@@ -44,10 +45,6 @@ export default function OrganizeTeams() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tournament', tournamentId] });
     },
-    onError: (error) => {
-      console.error("Failed to update tournament:", error);
-      alert("Error al actualizar el torneo. Por favor, inténtalo de nuevo.");
-    }
   });
 
   useEffect(() => {
@@ -88,7 +85,47 @@ export default function OrganizeTeams() {
     setStep(2);
   };
 
-  const handleOrganize = async () => {
+  const handleContinueToStep3 = () => {
+    setStep(3);
+  };
+
+  const handleSelectMethod = async (method) => {
+    setOrganizationMethod(method);
+    
+    if (method === 'manual') {
+      // Inicializar equipos vacíos con solo capitanes
+      const animales = [
+        { animal: "Tigres", origen: "Asia" },
+        { animal: "Lobos", origen: "Europa" },
+        { animal: "Delfines", origen: "Mediterráneo" },
+        { animal: "Águilas", origen: "América" },
+        { animal: "Leones", origen: "África" },
+        { animal: "Osos", origen: "Norte América" },
+        { animal: "Panteras", origen: "Amazonas" },
+        { animal: "Halcones", origen: "Oriente" }
+      ];
+
+      const initialTeams = captains.map((captainId, index) => {
+        const animal = animales[index] || { animal: "Guerreros", origen: "TLV" };
+        return {
+          id: `team-${index}`,
+          nombre: `Equipo ${index + 1} - ${animal.animal} de ${animal.origen}`,
+          numero: index + 1,
+          capitan_id: captainId,
+          jugadores_ids: [captainId]
+        };
+      });
+
+      setTeams(initialTeams);
+      setUnassignedPlayers(selectedPlayerIds.filter(id => !captains.includes(id)));
+      setStep(4);
+    } else {
+      // Organizar con IA
+      await handleOrganizeWithAI();
+    }
+  };
+
+  const handleOrganizeWithAI = async () => {
     setIsOrganizing(true);
 
     const playersData = selectedPlayers.map(p => ({
@@ -156,9 +193,33 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
       { animal: "Halcones", origen: "Oriente" }
     ];
 
-    const teamsToCreate = result.equipos.map((equipo, index) => {
+    const organizedTeams = result.equipos.map((equipo, index) => {
       const animal = animales[index] || { animal: "Guerreros", origen: "TLV" };
-      const jugadoresCalificaciones = equipo.jugadores_ids.map(id => {
+      return {
+        id: `team-${index}`,
+        nombre: `Equipo ${equipo.numero} - ${animal.animal} de ${animal.origen}`,
+        numero: equipo.numero,
+        capitan_id: equipo.capitan_id,
+        jugadores_ids: equipo.jugadores_ids
+      };
+    });
+
+    setTeams(organizedTeams);
+    setUnassignedPlayers([]);
+    setIsOrganizing(false);
+    setStep(5); // Paso de revisión después de AI
+  };
+
+  const handleConfirmTeams = async () => {
+    setIsOrganizing(true);
+
+    const playersData = selectedPlayers.map(p => ({
+      id: p.id,
+      calificacion: p.calificacion
+    }));
+
+    const teamsToCreate = teams.map(team => {
+      const jugadoresCalificaciones = team.jugadores_ids.map(id => {
         const player = playersData.find(p => p.id === id);
         return player ? player.calificacion : 3;
       });
@@ -166,71 +227,60 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
 
       return {
         tournament_id: tournamentId,
-        nombre: `Equipo ${equipo.numero} - ${animal.animal} de ${animal.origen}`,
-        numero: equipo.numero,
-        capitan_id: equipo.capitan_id,
-        jugadores_ids: equipo.jugadores_ids,
+        nombre: team.nombre,
+        numero: team.numero,
+        capitan_id: team.capitan_id,
+        jugadores_ids: team.jugadores_ids,
         promedio_calificacion: parseFloat(promedio.toFixed(2))
       };
     });
 
     await base44.entities.Team.bulkCreate(teamsToCreate);
 
-    const teams = await base44.entities.Team.filter({ tournament_id: tournamentId });
+    const createdTeams = await base44.entities.Team.filter({ tournament_id: tournamentId });
     const matches = [];
     const startTime = new Date(tournament.fecha_inicio);
 
     if (tournament.formato === 'todos_contra_todos') {
-      // Crear todas las combinaciones de partidos
       const allMatches = [];
-      for (let i = 0; i < teams.length; i++) {
-        for (let j = i + 1; j < teams.length; j++) {
+      for (let i = 0; i < createdTeams.length; i++) {
+        for (let j = i + 1; j < createdTeams.length; j++) {
           allMatches.push({
-            team1: teams[i],
-            team2: teams[j]
+            team1: createdTeams[i],
+            team2: createdTeams[j]
           });
         }
       }
 
-      // Algoritmo para ordenar partidos evitando que un equipo juegue 2 veces seguidas
       const orderedMatches = [];
-      const teamLastPlayed = new Map(); // Stores the index in orderedMatches when a team last played
+      const teamLastPlayed = new Map();
 
       while (allMatches.length > 0) {
         let bestMatchIndex = -1;
-        let bestScore = -1; // Represents the minimum gap since last played for the teams in a match
+        let bestScore = -1;
 
-        // Search for the best match to add next
         for (let i = 0; i < allMatches.length; i++) {
           const match = allMatches[i];
           const team1LastPlayed = teamLastPlayed.get(match.team1.id) || -Infinity;
           const team2LastPlayed = teamLastPlayed.get(match.team2.id) || -Infinity;
 
-          // Calculate how many matches ago these teams played
-          // A higher value means a longer break
           const minGapSinceLastPlayed = Math.min(
-            orderedMatches.length - team1LastPlayed, // Gap for team1
-            orderedMatches.length - team2LastPlayed  // Gap for team2
+            orderedMatches.length - team1LastPlayed,
+            orderedMatches.length - team2LastPlayed
           );
 
-          // Prefer matches where teams haven't played recently (larger gap)
           if (minGapSinceLastPlayed > bestScore) {
             bestScore = minGapSinceLastPlayed;
             bestMatchIndex = i;
           }
         }
 
-        // If a best match is found, add it to the ordered list
         if (bestMatchIndex >= 0) {
           const selectedMatch = allMatches.splice(bestMatchIndex, 1)[0];
           orderedMatches.push(selectedMatch);
-          // Update the last played index for the teams
           teamLastPlayed.set(selectedMatch.team1.id, orderedMatches.length - 1);
           teamLastPlayed.set(selectedMatch.team2.id, orderedMatches.length - 1);
         } else {
-          // Fallback: If no "best" match can be found (e.g., all teams have played recently),
-          // just pick the first available match to prevent an infinite loop.
-          // This case should ideally be rare with a good scoring heuristic.
           if (allMatches.length > 0) {
             const selectedMatch = allMatches.splice(0, 1)[0];
             orderedMatches.push(selectedMatch);
@@ -240,7 +290,6 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
         }
       }
 
-      // Create the match objects with the optimized order
       orderedMatches.forEach((match, index) => {
         const matchTime = new Date(startTime.getTime() + index * tournament.duracion_partido_minutos * 60000);
         matches.push({
@@ -267,9 +316,23 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
     navigate(createPageUrl(`TournamentResults?id=${tournamentId}`));
   };
 
+  const handleBackFromReview = () => {
+    // Permitir reorganizar manualmente
+    setUnassignedPlayers([]);
+    setStep(4);
+  };
+
+  const stepTitles = {
+    1: 'Selecciona los jugadores que participarán',
+    2: 'Elige los capitanes de cada equipo',
+    3: '¿Cómo deseas organizar los equipos?',
+    4: 'Arrastra jugadores para formar los equipos',
+    5: 'Revisa los equipos organizados por IA'
+  };
+
   return (
     <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="outline"
@@ -281,23 +344,23 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Organizar Equipos</h1>
-            <p className="text-gray-600">
-              {step === 1 ? 'Selecciona los jugadores que participarán' : 'Elige los capitanes de cada equipo'}
-            </p>
+            <p className="text-gray-600">{stepTitles[step]}</p>
           </div>
         </div>
 
         {/* Progress */}
         <div className="mb-8">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <div className={`flex-1 h-2 rounded-full ${step >= 1 ? 'bg-sky-500' : 'bg-gray-200'}`} />
             <div className={`flex-1 h-2 rounded-full ${step >= 2 ? 'bg-sky-500' : 'bg-gray-200'}`} />
             <div className={`flex-1 h-2 rounded-full ${step >= 3 ? 'bg-sky-500' : 'bg-gray-200'}`} />
+            <div className={`flex-1 h-2 rounded-full ${step >= 4 ? 'bg-sky-500' : 'bg-gray-200'}`} />
           </div>
           <div className="flex justify-between mt-2 text-sm font-medium">
             <span className={step >= 1 ? 'text-sky-600' : 'text-gray-400'}>Jugadores</span>
             <span className={step >= 2 ? 'text-sky-600' : 'text-gray-400'}>Capitanes</span>
-            <span className={step >= 3 ? 'text-sky-600' : 'text-gray-400'}>Organizar</span>
+            <span className={step >= 3 ? 'text-sky-600' : 'text-gray-400'}>Método</span>
+            <span className={step >= 4 ? 'text-sky-600' : 'text-gray-400'}>Organizar</span>
           </div>
         </div>
 
@@ -321,9 +384,41 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
             setCaptains={setCaptains}
             numTeams={numTeams}
             onBack={() => setStep(1)}
-            onOrganize={handleOrganize}
-            isOrganizing={isOrganizing}
+            onOrganize={handleContinueToStep3}
+            isOrganizing={false}
           />
+        )}
+
+        {step === 3 && (
+          <OrganizationMethodSelector onSelectMethod={handleSelectMethod} />
+        )}
+
+        {step === 4 && (
+          <ManualTeamOrganizer
+            teams={teams}
+            unassignedPlayers={unassignedPlayers}
+            onTeamsChange={setTeams}
+            onUnassignedChange={setUnassignedPlayers}
+            onBack={() => setStep(3)}
+            onConfirm={handleConfirmTeams}
+            isConfirming={isOrganizing}
+            playersData={selectedPlayers}
+          />
+        )}
+
+        {step === 5 && (
+          <div className="space-y-4">
+            <ManualTeamOrganizer
+              teams={teams}
+              unassignedPlayers={unassignedPlayers}
+              onTeamsChange={setTeams}
+              onUnassignedChange={setUnassignedPlayers}
+              onBack={handleBackFromReview}
+              onConfirm={handleConfirmTeams}
+              isConfirming={isOrganizing}
+              playersData={selectedPlayers}
+            />
+          </div>
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Crown, Star, Sparkles } from "lucide-react";
+import { Crown, Star, ArrowRight } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -101,19 +101,10 @@ export default function CaptainSelector({
           size="lg"
           onClick={onOrganize}
           disabled={!allCaptainsSelected || isOrganizing}
-          className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+          className="bg-sky-600 hover:bg-sky-700"
         >
-          {isOrganizing ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-              Organizando con IA...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5 mr-2" />
-              Organizar Equipos
-            </>
-          )}
+          <ArrowRight className="w-5 h-5 mr-2" />
+          Continuar
         </Button>
       </div>
     </div>
