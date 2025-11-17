@@ -118,6 +118,10 @@ export default function ManualTeamOrganizer({
   };
 
   const allPlayersAssigned = unassignedPlayers.length === 0;
+  
+  // Verificar que todos los equipos tengan la cantidad correcta de jugadores
+  const playersPerTeam = teams[0]?.jugadores_ids?.length || 0;
+  const allTeamsComplete = teams.every(team => team.jugadores_ids.length === playersPerTeam) && playersPerTeam > 0;
 
   return (
     <div className="space-y-6">
@@ -333,7 +337,7 @@ export default function ManualTeamOrganizer({
         <Button
           size="lg"
           onClick={onConfirm}
-          disabled={!allPlayersAssigned || isConfirming}
+          disabled={!allPlayersAssigned || !allTeamsComplete || isConfirming}
           className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
         >
           {isConfirming ? (

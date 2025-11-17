@@ -55,37 +55,7 @@ export default function PlayerSelector({
             </div>
           </div>
 
-          {!hasCorrectAmount && selectedPlayerIds.length > 0 && (
-            <div className={`border-2 rounded-lg p-4 ${
-              difference > 0 
-                ? 'bg-yellow-50 border-yellow-200' 
-                : 'bg-red-50 border-red-200'
-            }`}>
-              <div className="flex items-start gap-3">
-                <AlertTriangle className={`w-5 h-5 mt-0.5 ${
-                  difference > 0 ? 'text-yellow-600' : 'text-red-600'
-                }`} />
-                <div>
-                  <p className={`font-semibold ${
-                    difference > 0 ? 'text-yellow-900' : 'text-red-900'
-                  }`}>
-                    {difference > 0 
-                      ? `Tienes ${difference} jugador${difference > 1 ? 'es' : ''} de más` 
-                      : `Te faltan ${Math.abs(difference)} jugador${Math.abs(difference) > 1 ? 'es' : ''}`
-                    }
-                  </p>
-                  <p className={`text-sm ${
-                    difference > 0 ? 'text-yellow-700' : 'text-red-700'
-                  }`}>
-                    {difference > 0 
-                      ? 'Deselecciona algunos jugadores para continuar' 
-                      : 'Selecciona más jugadores para continuar'
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+
         </CardContent>
       </Card>
 

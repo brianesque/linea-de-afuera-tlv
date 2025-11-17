@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -346,24 +345,34 @@ Responde SOLO con el JSON solicitado.`,
                   </>
                 )}
                 {tournament?.estado === 'equipos_armados' && isAdmin && (
-                  <Button
-                    size="sm"
-                    onClick={handleReorganize}
-                    disabled={isReorganizing}
-                    className="bg-gradient-to-r from-purple-500 to-pink-600 text-xs"
-                  >
-                    {isReorganizing ? (
-                      <>
-                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
-                        ...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        Reorganizar
-                      </>
-                    )}
-                  </Button>
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => window.location.href = `/organize-teams?id=${tournament.id}`}
+                      className="bg-slate-600 hover:bg-slate-700 text-xs"
+                    >
+                      <Users className="w-3 h-3 mr-1" />
+                      Rearmar Manual
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleReorganize}
+                      disabled={isReorganizing}
+                      className="bg-gradient-to-r from-purple-500 to-pink-600 text-xs"
+                    >
+                      {isReorganizing ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                          ...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Reorganizar IA
+                        </>
+                      )}
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
