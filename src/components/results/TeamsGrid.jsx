@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -348,7 +349,7 @@ Responde SOLO con el JSON solicitado.`,
                   <>
                     <Button
                       size="sm"
-                      onClick={() => window.location.href = `/organize-teams?id=${tournament.id}`}
+                      onClick={() => window.location.href = createPageUrl(`OrganizeTeams?id=${tournament.id}`)}
                       className="bg-slate-600 hover:bg-slate-700 text-xs"
                     >
                       <Users className="w-3 h-3 mr-1" />
