@@ -115,37 +115,37 @@ export default function CreateTournament() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-3 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 md:mb-6">
           <Button
             variant="outline"
             size="icon"
             onClick={() => navigate(createPageUrl("Home"))}
-            className="border-2 border-orange-200 hover:bg-orange-50"
+            className="border-2 border-slate-300 hover:bg-slate-50"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Crear Nuevo Torneo</h1>
-            <p className="text-gray-600">Configura los detalles de tu torneo de beach vóley</p>
+            <h1 className="text-xl md:text-3xl font-bold text-slate-900">Crear Nuevo Torneo</h1>
+            <p className="text-xs md:text-sm text-slate-600">Configura los detalles</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
           {/* Template Selector */}
           {templates.length > 0 && (
-            <Card className="border-2 border-purple-100">
-              <CardHeader className="bg-gradient-to-r from-purple-100 to-pink-100">
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-purple-600" />
-                  Usar Template
+            <Card className="border border-slate-200">
+              <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
+                <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+                  Usar Plantilla
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="pt-4">
                 <Select onValueChange={handleTemplateSelect}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar un template..." />
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="Seleccionar plantilla..." />
                   </SelectTrigger>
                   <SelectContent>
                     {templates.map((template) => (
@@ -160,37 +160,37 @@ export default function CreateTournament() {
           )}
 
           {/* Información Básica */}
-          <Card className={`border-2 ${isMissingRequiredFields ? 'border-red-300 shadow-red-100' : 'border-sky-100'}`}>
-            <CardHeader className={`${isMissingRequiredFields ? 'bg-gradient-to-r from-red-50 to-pink-50' : 'bg-gradient-to-r from-sky-100 to-blue-100'}`}>
-              <CardTitle className="flex items-center justify-between">
+          <Card className={`border ${isMissingRequiredFields ? 'border-red-300' : 'border-slate-200'}`}>
+            <CardHeader className={`${isMissingRequiredFields ? 'bg-red-50' : 'bg-slate-50'} border-b border-slate-200 py-3`}>
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm md:text-base">
                 <span>Información Básica</span>
                 {isMissingRequiredFields && (
                   <span className="text-xs font-normal text-red-600 bg-red-100 px-2 py-1 rounded">
-                    ⚠️ Campos obligatorios faltantes
+                    ⚠️ Faltan campos
                   </span>
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-4">
+            <CardContent className="pt-4 space-y-3 md:space-y-4">
               <div>
-                <Label htmlFor="nombre" className={!formData.nombre ? 'text-red-600' : ''}>
+                <Label htmlFor="nombre" className={`text-xs md:text-sm ${!formData.nombre ? 'text-red-600' : ''}`}>
                   Nombre del Torneo *
                 </Label>
                 <Input
                   id="nombre"
                   value={formData.nombre}
                   onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-                  placeholder="Ej: Summer Beach Tournament 2024"
-                  className={!formData.nombre ? 'border-red-300 focus:border-red-500' : ''}
+                  placeholder="Ej: Torneo Verano 2024"
+                  className={`text-sm ${!formData.nombre ? 'border-red-300' : ''}`}
                 />
                 {!formData.nombre && (
-                  <p className="text-xs text-red-600 mt-1">⚠️ Este campo es obligatorio</p>
+                  <p className="text-xs text-red-600 mt-1">⚠️ Campo obligatorio</p>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3 md:gap-4">
                 <div>
-                  <Label htmlFor="fecha_inicio" className={!formData.fecha_inicio ? 'text-red-600' : ''}>
+                  <Label htmlFor="fecha_inicio" className={`text-xs md:text-sm ${!formData.fecha_inicio ? 'text-red-600' : ''}`}>
                     Fecha y Hora *
                   </Label>
                   <Input
@@ -198,33 +198,34 @@ export default function CreateTournament() {
                     type="datetime-local"
                     value={formData.fecha_inicio}
                     onChange={(e) => setFormData({...formData, fecha_inicio: e.target.value})}
-                    className={!formData.fecha_inicio ? 'border-red-300 focus:border-red-500' : ''}
+                    className={`text-sm ${!formData.fecha_inicio ? 'border-red-300' : ''}`}
                   />
                   {!formData.fecha_inicio && (
-                    <p className="text-xs text-red-600 mt-1">⚠️ Este campo es obligatorio</p>
+                    <p className="text-xs text-red-600 mt-1">⚠️ Campo obligatorio</p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="jugadores_por_equipo">Jugadores por Equipo</Label>
+                  <Label htmlFor="jugadores_por_equipo" className="text-xs md:text-sm">Jugadores/Equipo</Label>
                   <Input
                     id="jugadores_por_equipo"
                     type="number"
                     min="2"
                     value={formData.jugadores_por_equipo}
                     onChange={(e) => setFormData({...formData, jugadores_por_equipo: parseInt(e.target.value)})}
+                    className="text-sm"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="numero_equipos">Número de Equipos</Label>
+                  <Label htmlFor="numero_equipos" className="text-xs md:text-sm">N° Equipos</Label>
                   <Input
                     id="numero_equipos"
                     type="number"
                     min="2"
                     value={formData.numero_equipos}
                     onChange={(e) => setFormData({...formData, numero_equipos: parseInt(e.target.value)})}
-                    className={!hasEnoughPlayers ? 'border-red-300' : ''}
+                    className={`text-sm ${!hasEnoughPlayers ? 'border-red-300' : ''}`}
                   />
                   {!hasEnoughPlayers && (
                     <p className="text-xs text-red-600 mt-1 font-semibold">
@@ -234,19 +235,19 @@ export default function CreateTournament() {
                 </div>
 
                 <div>
-                  <Label htmlFor="duracion_partido">Duración por Partido (min)</Label>
+                  <Label htmlFor="duracion_partido" className="text-xs md:text-sm">Duración Partido (min)</Label>
                   <Input
                     id="duracion_partido"
                     type="number"
                     min="10"
                     value={formData.duracion_partido_minutos}
                     onChange={(e) => setFormData({...formData, duracion_partido_minutos: parseInt(e.target.value)})}
+                    className="text-sm"
                   />
                 </div>
 
-                {/* New Input for Puntos por Set */}
                 <div>
-                  <Label htmlFor="puntos_por_set">Puntos por Set</Label>
+                  <Label htmlFor="puntos_por_set" className="text-xs md:text-sm">Puntos/Set</Label>
                   <Input
                     id="puntos_por_set"
                     type="number"
@@ -254,88 +255,87 @@ export default function CreateTournament() {
                     max="25"
                     value={formData.puntos_por_set}
                     onChange={(e) => setFormData({...formData, puntos_por_set: parseInt(e.target.value)})}
+                    className="text-sm"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Puntos necesarios para ganar cada set</p>
                 </div>
-                {/* End New Input */}
               </div>
             </CardContent>
           </Card>
 
           {/* Formato del Torneo */}
-          <Card className="border-2 border-orange-100">
-            <CardHeader className="bg-gradient-to-r from-orange-100 to-amber-100">
-              <CardTitle>Formato del Torneo</CardTitle>
+          <Card className="border border-slate-200">
+            <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
+              <CardTitle className="text-sm md:text-base">Formato</CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-4">
+            <CardContent className="pt-4 space-y-3 md:space-y-4">
               <div>
-                <Label htmlFor="formato">Formato</Label>
+                <Label htmlFor="formato" className="text-xs md:text-sm">Tipo</Label>
                 <Select value={formData.formato} onValueChange={(value) => setFormData({...formData, formato: value})}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="todos_contra_todos">Todos contra Todos</SelectItem>
+                    <SelectItem value="todos_contra_todos">Todos vs Todos</SelectItem>
                     <SelectItem value="grupos">Grupos</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <Label htmlFor="criterio_ganador">Criterio para Ganador</Label>
+                  <Label htmlFor="criterio_ganador" className="text-xs md:text-sm">Criterio Ganador</Label>
                   <Select value={formData.criterio_ganador} onValueChange={(value) => setFormData({...formData, criterio_ganador: value})}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="sets">Por Sets (Diferencia de Sets)</SelectItem>
-                      <SelectItem value="partidos_ganados">Por Partidos Ganados</SelectItem>
+                      <SelectItem value="sets">Por Sets</SelectItem>
+                      <SelectItem value="partidos_ganados">Por Partidos</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="criterio_empate">Criterio de Desempate</Label>
+                  <Label htmlFor="criterio_empate" className="text-xs md:text-sm">Desempate</Label>
                   <Select value={formData.criterio_empate} onValueChange={(value) => setFormData({...formData, criterio_empate: value})}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="diferencia_puntos">Diferencia de Puntos</SelectItem>
+                      <SelectItem value="diferencia_puntos">Dif. Puntos</SelectItem>
                       <SelectItem value="puntos_a_favor">Puntos a Favor</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="space-y-4 pt-4 border-t">
-                <h3 className="font-semibold text-gray-900">Fase Final</h3>
+              <div className="space-y-3 pt-3 border-t">
+                <h3 className="font-semibold text-slate-900 text-xs md:text-sm">Fase Final</h3>
                 
-                <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
                   <div>
-                    <Label htmlFor="jugar_final" className="font-semibold cursor-pointer">Jugar Final</Label>
-                    <p className="text-sm text-gray-600">Los mejores 2 equipos juegan la final</p>
+                    <Label htmlFor="jugar_final" className="font-semibold cursor-pointer text-xs md:text-sm">Jugar Final</Label>
+                    <p className="text-xs text-slate-600">Mejores 2 equipos</p>
                   </div>
                   <Switch
                     id="jugar_final"
                     checked={formData.jugar_final}
                     onCheckedChange={(checked) => setFormData({...formData, jugar_final: checked, jugar_semifinal: checked ? formData.jugar_semifinal : false})}
-                    className="data-[state=checked]:bg-purple-600"
+                    className="data-[state=checked]:bg-slate-700"
                   />
                 </div>
 
                 {formData.jugar_final && (
-                  <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <div>
-                      <Label htmlFor="jugar_semifinal" className="font-semibold cursor-pointer">Incluir Semifinales</Label>
-                      <p className="text-sm text-gray-600">Los mejores 4 juegan semifinales + final</p>
+                      <Label htmlFor="jugar_semifinal" className="font-semibold cursor-pointer text-xs md:text-sm">Semifinales</Label>
+                      <p className="text-xs text-slate-600">Mejores 4 equipos</p>
                     </div>
                     <Switch
                       id="jugar_semifinal"
                       checked={formData.jugar_semifinal}
                       onCheckedChange={(checked) => setFormData({...formData, jugar_semifinal: checked})}
-                      className="data-[state=checked]:bg-purple-600"
+                      className="data-[state=checked]:bg-slate-700"
                     />
                   </div>
                 )}
@@ -344,73 +344,77 @@ export default function CreateTournament() {
           </Card>
 
           {/* Logística */}
-          <Card className="border-2 border-green-100">
-            <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100">
-              <CardTitle>Logística</CardTitle>
+          <Card className="border border-slate-200">
+            <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
+              <CardTitle className="text-sm md:text-base">Logística</CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CardContent className="pt-4 space-y-3">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <Label htmlFor="cervezas">Cervezas por Persona</Label>
+                  <Label htmlFor="cervezas" className="text-xs md:text-sm">Cervezas/persona</Label>
                   <Input
                     id="cervezas"
                     type="number"
                     min="0"
                     value={formData.cervezas_por_persona}
                     onChange={(e) => setFormData({...formData, cervezas_por_persona: parseInt(e.target.value)})}
+                    className="text-sm"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="bebidas">Bebidas por Persona</Label>
+                  <Label htmlFor="bebidas" className="text-xs md:text-sm">Bebidas/persona</Label>
                   <Input
                     id="bebidas"
                     type="number"
                     min="0"
                     value={formData.bebidas_por_persona}
                     onChange={(e) => setFormData({...formData, bebidas_por_persona: parseInt(e.target.value)})}
+                    className="text-sm"
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border-2 border-green-200">
-                  <Label htmlFor="snacks" className="cursor-pointer">Incluir Snacks</Label>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <Label htmlFor="snacks" className="cursor-pointer text-xs md:text-sm">Snacks</Label>
                   <Switch
                     id="snacks"
                     checked={formData.snacks}
                     onCheckedChange={(checked) => setFormData({...formData, snacks: checked})}
-                    className="data-[state=checked]:bg-green-600"
+                    className="data-[state=checked]:bg-slate-700"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t">
+              <div className="pt-3 border-t">
                 <div className="text-center">
-                  <p className="text-sm text-gray-500 mb-2">Presupuesto Estimado</p>
-                  <p className="text-4xl font-bold text-green-600">₪{calculateCost()}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Para {formData.jugadores_por_equipo * formData.numero_equipos} participantes
+                  <p className="text-xs text-slate-500 mb-1">Presupuesto Estimado</p>
+                  <p className="text-2xl md:text-4xl font-bold text-slate-900">₪{calculateCost()}</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {formData.jugadores_por_equipo * formData.numero_equipos} participantes
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="flex gap-3 justify-end">
+          <div className="flex gap-2 justify-end">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => navigate(createPageUrl("Home"))}
+              className="text-xs md:text-sm"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              size="lg"
+              size="sm"
               disabled={!canSubmit}
-              className={`${canSubmit ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' : 'bg-slate-300 cursor-not-allowed'}`}
+              className={`text-xs md:text-sm ${canSubmit ? 'bg-slate-700 hover:bg-slate-800' : 'bg-slate-300 cursor-not-allowed'}`}
             >
-              <Plus className="w-5 h-5 mr-2" />
-              Crear Torneo
+              <Plus className="w-4 h-4 mr-1" />
+              Crear
             </Button>
           </div>
         </form>

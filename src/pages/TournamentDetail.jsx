@@ -243,40 +243,41 @@ export default function TournamentDetail() {
   );
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 md:mb-6">
           <Button
             variant="outline"
             size="icon"
             onClick={() => navigate(createPageUrl("Home"))}
-            className="border-2 border-orange-200 hover:bg-orange-50"
+            className="border-2 border-slate-300 hover:bg-slate-50"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">{tournament.nombre}</h1>
-            <p className="text-gray-600">Detalles y configuración del torneo</p>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl md:text-3xl font-bold text-slate-900 truncate">{tournament.nombre}</h1>
+            <p className="text-xs md:text-sm text-slate-600">Detalles del torneo</p>
           </div>
           {isAdmin && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleDeleteTournament}
                 disabled={deleteTournamentMutation.isPending}
+                className="text-xs flex-1 sm:flex-none"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                {deleteTournamentMutation.isPending ? "Eliminando..." : "Eliminar Torneo"}
+                <Trash2 className="w-3 h-3 sm:mr-2" />
+                <span className="hidden sm:inline">{deleteTournamentMutation.isPending ? "Eliminando..." : "Eliminar"}</span>
               </Button>
               {tournament.estado === 'configuracion' && (
                 <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                  size="sm"
+                  className="bg-slate-700 hover:bg-slate-800 text-xs flex-1 sm:flex-none"
                   onClick={() => navigate(createPageUrl(`OrganizeTeams?id=${tournament.id}`))}
                 >
-                  <Play className="w-5 h-5 mr-2" />
-                  Organizar Equipos
+                  <Play className="w-3 h-3 sm:mr-2" />
+                  <span className="hidden sm:inline">Organizar</span>
                 </Button>
               )}
               {canStartPlayoff && (
@@ -297,132 +298,124 @@ export default function TournamentDetail() {
           )}
         </div>
 
-        <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white border-2 border-sky-100 p-1">
-            <TabsTrigger value="info">Información</TabsTrigger>
-            <TabsTrigger value="participants">Participantes</TabsTrigger>
+        <Tabs defaultValue="info" className="space-y-4 md:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 bg-white border border-slate-200 p-1 gap-1">
+            <TabsTrigger value="info" className="text-xs sm:text-sm">Info</TabsTrigger>
+            <TabsTrigger value="participants" className="text-xs sm:text-sm">Partici.</TabsTrigger>
             {(tournament.estado === 'equipos_armados' || tournament.estado === 'en_curso' || tournament.estado === 'finalizado') && (
               <>
-                <TabsTrigger value="standings">Posiciones</TabsTrigger>
-                <TabsTrigger value="teams">Equipos</TabsTrigger>
-                <TabsTrigger value="fixture">Fixture</TabsTrigger>
+                <TabsTrigger value="standings" className="text-xs sm:text-sm">Posic.</TabsTrigger>
+                <TabsTrigger value="teams" className="text-xs sm:text-sm">Equipos</TabsTrigger>
+                <TabsTrigger value="fixture" className="text-xs sm:text-sm col-span-2 sm:col-span-1">Fixture</TabsTrigger>
               </>
             )}
           </TabsList>
 
           <TabsContent value="info">
             {tournament.estado === 'finalizado' && winnerTeam && (
-              <Card className="mb-6 border-4 border-yellow-300 shadow-2xl bg-gradient-to-br from-yellow-50 to-amber-50">
-                <CardContent className="pt-6">
+              <Card className="mb-4 border-2 border-yellow-300 shadow-lg bg-gradient-to-br from-yellow-50 to-amber-50">
+                <CardContent className="pt-4 md:pt-6">
                   <div className="text-center">
-                    <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">¡Campeón del Torneo!</h2>
-                    <p className="text-2xl font-bold text-yellow-700">{winnerTeam.nombre}</p>
+                    <Trophy className="w-12 h-12 md:w-20 md:h-20 text-yellow-500 mx-auto mb-2 md:mb-4" />
+                    <h2 className="text-xl md:text-3xl font-bold text-slate-900 mb-1 md:mb-2">¡Campeón!</h2>
+                    <p className="text-lg md:text-2xl font-bold text-yellow-700">{winnerTeam.nombre}</p>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2 border-2 border-sky-100 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-sky-100 to-blue-100">
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-sky-600" />
-                    Información del Torneo
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
+              <Card className="lg:col-span-2 border border-slate-200 shadow-sm">
+                <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
+                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                    <Trophy className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+                    Información
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CardContent className="pt-4 md:pt-6">
+                  <div className="grid grid-cols-1 gap-3 md:gap-4">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Fecha y Hora</p>
+                      <p className="text-xs text-slate-500 mb-1">Fecha y Hora</p>
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-sky-600" />
-                        <p className="font-semibold text-gray-900">
+                        <Calendar className="w-4 h-4 text-slate-600" />
+                        <p className="font-semibold text-slate-900 text-sm">
                           {format(new Date(tournament.fecha_inicio), "d 'de' MMMM, yyyy", { locale: es })}
                         </p>
                       </div>
-                      <p className="text-sm text-gray-600 ml-7">
+                      <p className="text-xs text-slate-600 ml-6">
                         {format(new Date(tournament.fecha_inicio), "HH:mm", { locale: es })} hs
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Jugadores por Equipo</p>
+                      <p className="text-xs text-slate-500 mb-1">Jugadores/Equipo</p>
                       <div className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-orange-600" />
-                        <p className="font-semibold text-gray-900">
+                        <Users className="w-4 h-4 text-slate-600" />
+                        <p className="font-semibold text-slate-900 text-sm">
                           {tournament.jugadores_por_equipo} jugadores
                         </p>
                       </div>
                     </div>
 
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Formato</p>
-                      <p className="font-semibold text-gray-900">
-                        {tournament.formato === 'todos_contra_todos' ? 'Todos contra Todos' : 'Grupos'}
-                      </p>
-                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Formato</p>
+                        <p className="font-semibold text-slate-900 text-sm">
+                          {tournament.formato === 'todos_contra_todos' ? 'Todos vs Todos' : 'Grupos'}
+                        </p>
+                      </div>
 
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Duración por Partido</p>
-                      <p className="font-semibold text-gray-900">
-                        {tournament.duracion_partido_minutos} minutos
-                      </p>
-                    </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Duración</p>
+                        <p className="font-semibold text-slate-900 text-sm">
+                          {tournament.duracion_partido_minutos} min
+                        </p>
+                      </div>
 
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Puntos por Set</p>
-                      <p className="font-semibold text-gray-900">
-                        {tournament.puntos_por_set || 15} puntos
-                      </p>
-                    </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Puntos/Set</p>
+                        <p className="font-semibold text-slate-900 text-sm">
+                          {tournament.puntos_por_set || 15}
+                        </p>
+                      </div>
 
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Criterio para Ganador</p>
-                      <p className="font-semibold text-gray-900">
-                        {tournament.criterio_ganador === 'sets' ? 'Por Sets (Diferencia)' : 'Por Partidos Ganados'}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">En Caso de Empate</p>
-                      <p className="font-semibold text-gray-900">
-                        {tournament.criterio_empate === 'diferencia_puntos' ? 'Diferencia de Puntos' : 'Puntos a Favor'}
-                      </p>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Ganador</p>
+                        <p className="font-semibold text-slate-900 text-sm">
+                          {tournament.criterio_ganador === 'sets' ? 'Por Sets' : 'Por Partidos'}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   {isAdmin && tournament.estado !== 'finalizado' && (
-                    <div className="mt-6 pt-6 border-t space-y-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Settings className="w-4 h-4 text-purple-600" />
-                        <h3 className="font-semibold text-gray-900">Configuración de Fase Final</h3>
-                      </div>
+                    <div className="mt-4 pt-4 border-t space-y-2">
+                      <h3 className="font-semibold text-slate-900 text-xs md:text-sm mb-2">Fase Final</h3>
                       
-                      <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
                         <div>
-                          <Label className="font-semibold cursor-pointer">Jugar Final</Label>
-                          <p className="text-sm text-gray-600">Los mejores 2 equipos</p>
+                          <Label className="font-semibold cursor-pointer text-xs">Final</Label>
+                          <p className="text-xs text-slate-600">Mejores 2</p>
                         </div>
                         <Switch
                           checked={tournament.jugar_final || false}
                           onCheckedChange={(checked) => handleTogglePlayoff('jugar_final', checked)}
                           disabled={tournament.fase_actual !== 'fase_grupos'}
-                          className="data-[state=checked]:bg-purple-600"
+                          className="data-[state=checked]:bg-slate-700"
                         />
                       </div>
 
                       {tournament.jugar_final && (
-                        <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
                           <div>
-                            <Label className="font-semibold cursor-pointer">Incluir Semifinales</Label>
-                            <p className="text-sm text-gray-600">Los mejores 4 equipos</p>
+                            <Label className="font-semibold cursor-pointer text-xs">Semifinales</Label>
+                            <p className="text-xs text-slate-600">Mejores 4</p>
                           </div>
                           <Switch
                             checked={tournament.jugar_semifinal || false}
                             onCheckedChange={(checked) => handleTogglePlayoff('jugar_semifinal', checked)}
                             disabled={tournament.fase_actual !== 'fase_grupos'}
-                            className="data-[state=checked]:bg-purple-600"
+                            className="data-[state=checked]:bg-slate-700"
                           />
                         </div>
                       )}
@@ -431,46 +424,46 @@ export default function TournamentDetail() {
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-green-100 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100">
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-green-600" />
+              <Card className="border border-slate-200 shadow-sm">
+                <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
+                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                    <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
                     Logística
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6 space-y-4">
+                <CardContent className="pt-4 space-y-3">
                   <div>
-                    <p className="text-sm text-gray-500">Cervezas por Persona</p>
-                    <p className="text-2xl font-bold text-gray-900">{tournament.cervezas_por_persona}</p>
+                    <p className="text-xs text-slate-500">Cervezas/persona</p>
+                    <p className="text-xl md:text-2xl font-bold text-slate-900">{tournament.cervezas_por_persona}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Bebidas por Persona</p>
-                    <p className="text-2xl font-bold text-gray-900">{tournament.bebidas_por_persona}</p>
+                    <p className="text-xs text-slate-500">Bebidas/persona</p>
+                    <p className="text-xl md:text-2xl font-bold text-slate-900">{tournament.bebidas_por_persona}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Snacks</p>
-                    <p className="text-xl font-semibold text-gray-900">
-                      {tournament.snacks ? '✅ Incluidos' : '❌ No incluidos'}
+                    <p className="text-xs text-slate-500">Snacks</p>
+                    <p className="text-base md:text-xl font-semibold text-slate-900">
+                      {tournament.snacks ? '✅ Sí' : '❌ No'}
                     </p>
                   </div>
-                  <div className="pt-4 border-t border-green-200">
-                    <p className="text-sm text-gray-500">Presupuesto Total</p>
-                    <p className="text-3xl font-bold text-green-600">₪{tournament.costo_total}</p>
+                  <div className="pt-3 border-t border-slate-200">
+                    <p className="text-xs text-slate-500">Presupuesto</p>
+                    <p className="text-2xl md:text-3xl font-bold text-slate-900">₪{tournament.costo_total}</p>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <Card className="mt-6 border-2 border-orange-100 shadow-lg">
-              <CardContent className="pt-6">
+            <Card className="mt-4 border border-slate-200 shadow-sm">
+              <CardContent className="pt-4 md:pt-6">
                 <div className="text-center">
-                  <p className="text-sm text-gray-500 mb-2">Estado Actual</p>
-                  <div className="inline-block px-6 py-3 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 border-2 border-orange-300">
-                    <p className="text-xl font-bold text-orange-800">
-                      {tournament.estado === 'configuracion' && '⚙️ En Configuración'}
-                      {tournament.estado === 'equipos_armados' && '✅ Equipos Armados'}
-                      {tournament.estado === 'en_curso' && `🏐 ${tournament.fase_actual === 'fase_grupos' ? 'Fase de Grupos' : tournament.fase_actual === 'semifinal' ? 'Semifinales' : 'Final'}`}
-                      {tournament.estado === 'finalizado' && '🏆 Finalizado'}
+                  <p className="text-xs text-slate-500 mb-2">Estado</p>
+                  <div className="inline-block px-4 py-2 rounded-full bg-slate-100 border border-slate-200">
+                    <p className="text-sm md:text-base font-bold text-slate-800">
+                      {tournament.estado === 'configuracion' && '⚙️ Config.'}
+                      {tournament.estado === 'equipos_armados' && '✅ Armados'}
+                      {tournament.estado === 'en_curso' && `🏐 ${tournament.fase_actual === 'fase_grupos' ? 'Grupos' : tournament.fase_actual === 'semifinal' ? 'Semis' : 'Final'}`}
+                      {tournament.estado === 'finalizado' && '🏆 Fin'}
                     </p>
                   </div>
                 </div>
@@ -479,17 +472,17 @@ export default function TournamentDetail() {
           </TabsContent>
 
           <TabsContent value="participants">
-            <Card className="border-2 border-purple-100 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-purple-100 to-pink-100">
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5 text-purple-600" />
+            <Card className="border border-slate-200 shadow-sm">
+              <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
+                <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                  <User className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
                   Participantes ({participantes.length})
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="pt-4 md:pt-6">
                 {participantes.length === 0 ? (
                   <div className="text-center py-12">
-                    <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600">No hay participantes seleccionados todavía</p>
                   </div>
                 ) : (
@@ -497,7 +490,7 @@ export default function TournamentDetail() {
                     {participantes.map((player) => {
                       const isChampion = winnerPlayerIds.includes(player.id);
                       return (
-                        <Card key={player.id} className={`border ${isChampion ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50' : 'border-purple-200'}`}>
+                        <Card key={player.id} className={`border ${isChampion ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50' : 'border-slate-200'}`}>
                           <CardContent className="pt-4">
                             <div className="flex items-center justify-between">
                               <div>
@@ -505,7 +498,7 @@ export default function TournamentDetail() {
                                   <p className="font-semibold text-gray-900">{player.nombre}</p>
                                   {isChampion && <Trophy className="w-5 h-5 text-yellow-500" />}
                                 </div>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-xs text-gray-500">
                                   {player.genero === "femenino" ? "Femenino" : "Masculino"}
                                 </p>
                               </div>
