@@ -44,8 +44,13 @@ export default function TournamentComments({ tournamentId, user }) {
     };
 
     if (!isAnonymous) {
-      commentData.nombre = nombre || user?.email || "Usuario";
-      commentData.email = email || user?.email || "";
+      if (user) {
+        commentData.nombre = user.email;
+        commentData.email = user.email;
+      } else {
+        commentData.nombre = nombre || "Usuario";
+        commentData.email = email || "";
+      }
     }
 
     createCommentMutation.mutate(commentData);
@@ -81,7 +86,7 @@ export default function TournamentComments({ tournamentId, user }) {
             </Label>
           </div>
 
-          {!isAnonymous && (
+          {!user && !isAnonymous && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
               <Input
                 placeholder="Tu nombre"
