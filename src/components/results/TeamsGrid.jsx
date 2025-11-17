@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -154,24 +155,74 @@ Responde SOLO con el JSON solicitado.`,
 
     const newTeams = await base44.entities.Team.filter({ tournament_id: tournamentId });
     const newMatches = [];
-    let matchNumber = 1;
     const startTime = new Date(tournament.fecha_inicio);
 
     if (tournament.formato === 'todos_contra_todos') {
+      // Crear todas las combinaciones de partidos
+      const allMatches = [];
       for (let i = 0; i < newTeams.length; i++) {
         for (let j = i + 1; j < newTeams.length; j++) {
-          const matchTime = new Date(startTime.getTime() + (matchNumber - 1) * tournament.duracion_partido_minutos * 60000);
-          newMatches.push({
-            tournament_id: tournamentId,
-            equipo1_id: newTeams[i].id,
-            equipo2_id: newTeams[j].id,
-            numero_partido: matchNumber,
-            horario_estimado: matchTime.toISOString(),
-            estado: 'pendiente'
+          allMatches.push({
+            team1: newTeams[i],
+            team2: newTeams[j]
           });
-          matchNumber++;
         }
       }
+
+      // Algoritmo optimizado para evitar partidos consecutivos
+      const orderedMatches = [];
+      const teamLastPlayed = new Map(); // Maps team.id to the index in orderedMatches where it last played
+
+      while (allMatches.length > 0) {
+        let bestMatchIndex = -1;
+        let bestScore = -1; // Maximize the minimum gap since last played
+
+        for (let i = 0; i < allMatches.length; i++) {
+          const match = allMatches[i];
+          const team1LastPlayed = teamLastPlayed.get(match.team1.id) || -Infinity; // If never played, consider it played "long ago"
+          const team2LastPlayed = teamLastPlayed.get(match.team2.id) || -Infinity;
+
+          // Calculate the number of matches passed since each team last played
+          // orderedMatches.length is the current "time" or index for the next match
+          const minGapSinceLastPlayed = Math.min(
+            orderedMatches.length - team1LastPlayed,
+            orderedMatches.length - team2LastPlayed
+          );
+
+          if (minGapSinceLastPlayed > bestScore) {
+            bestScore = minGapSinceLastPlayed;
+            bestMatchIndex = i;
+          }
+        }
+
+        if (bestMatchIndex >= 0) {
+          const selectedMatch = allMatches.splice(bestMatchIndex, 1)[0]; // Remove the best match from the pool
+          orderedMatches.push(selectedMatch);
+          teamLastPlayed.set(selectedMatch.team1.id, orderedMatches.length - 1); // Update last played index
+          teamLastPlayed.set(selectedMatch.team2.id, orderedMatches.length - 1);
+        } else {
+          // Fallback: If for some reason no good score is found (e.g., at the very beginning
+          // or if all teams have played recently), just pick the first available match.
+          if (allMatches.length > 0) {
+            const selectedMatch = allMatches.splice(0, 1)[0];
+            orderedMatches.push(selectedMatch);
+            teamLastPlayed.set(selectedMatch.team1.id, orderedMatches.length - 1);
+            teamLastPlayed.set(selectedMatch.team2.id, orderedMatches.length - 1);
+          }
+        }
+      }
+
+      orderedMatches.forEach((match, index) => {
+        const matchTime = new Date(startTime.getTime() + index * tournament.duracion_partido_minutos * 60000);
+        newMatches.push({
+          tournament_id: tournamentId,
+          equipo1_id: match.team1.id,
+          equipo2_id: match.team2.id,
+          numero_partido: index + 1,
+          horario_estimado: matchTime.toISOString(),
+          estado: 'pendiente'
+        });
+      });
     }
 
     if (newMatches.length > 0) {
