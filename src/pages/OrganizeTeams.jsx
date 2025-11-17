@@ -44,6 +44,10 @@ export default function OrganizeTeams() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tournament', tournamentId] });
     },
+    onError: (error) => {
+      console.error("Failed to update tournament:", error);
+      alert("Error al actualizar el torneo. Por favor, inténtalo de nuevo.");
+    }
   });
 
   useEffect(() => {
@@ -95,6 +99,11 @@ export default function OrganizeTeams() {
       is_captain: captains.includes(p.id)
     }));
 
+    const mujeres = playersData.filter(p => p.genero === 'femenino');
+    const hombres = playersData.filter(p => p.genero === 'masculino');
+    const minWomenPerTeam = Math.floor(mujeres.length / numTeams);
+    const canGuaranteeWomen = minWomenPerTeam >= 1;
+
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Eres un asistente que organiza equipos de beach vóley de manera equilibrada.
 
@@ -102,12 +111,17 @@ Datos:
 - Número de equipos: ${numTeams}
 - Jugadores por equipo: ${tournament.jugadores_por_equipo}
 - Jugadores disponibles: ${JSON.stringify(playersData)}
+- Mujeres disponibles: ${mujeres.length}
+- Hombres disponibles: ${hombres.length}
 
 Instrucciones CRÍTICAS (en orden de prioridad):
 1. Los jugadores marcados como "is_captain: true" DEBEN ser capitanes y estar en equipos DIFERENTES.
-2. Distribuye las MUJERES de manera EQUITATIVA en todos los equipos (cada equipo debe tener el mismo número de mujeres, o diferencia de máximo 1).
-3. Después equilibra por CALIFICACIÓN para que el promedio de cada equipo sea lo más similar posible.
-4. Cada equipo debe tener exactamente ${tournament.jugadores_por_equipo} jugadores.
+2. ${canGuaranteeWomen ?
+  `Distribuye las MUJERES de manera EQUITATIVA: cada equipo debe tener AL MENOS 1 mujer. Si hay mujeres extra, distribúyelas equitativamente.` :
+  `Distribuye las MUJERES de manera EQUITATIVA en los equipos (el mismo número por equipo, o diferencia máxima de 1).`}
+3. Al evaluar niveles de equipos, considera que un hombre nivel 4 es equivalente a una mujer nivel 5 (los hombres tienen ventaja física). Por lo tanto, al balancear equipos ajusta: calificacion_efectiva = genero === "masculino" ? calificacion + 0.5 : calificacion.
+4. Equilibra los equipos por calificación efectiva para que el promedio de cada equipo sea lo más similar posible.
+5. Cada equipo debe tener exactamente ${tournament.jugadores_por_equipo} jugadores.
 
 Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
       response_json_schema: {
@@ -181,7 +195,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
       // Algoritmo para ordenar partidos evitando que un equipo juegue 2 veces seguidas
       const orderedMatches = [];
       const teamLastPlayed = new Map(); // Stores the index in orderedMatches when a team last played
-      
+
       while (allMatches.length > 0) {
         let bestMatchIndex = -1;
         let bestScore = -1; // Represents the minimum gap since last played for the teams in a match
@@ -191,7 +205,7 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
           const match = allMatches[i];
           const team1LastPlayed = teamLastPlayed.get(match.team1.id) || -Infinity;
           const team2LastPlayed = teamLastPlayed.get(match.team2.id) || -Infinity;
-          
+
           // Calculate how many matches ago these teams played
           // A higher value means a longer break
           const minGapSinceLastPlayed = Math.min(

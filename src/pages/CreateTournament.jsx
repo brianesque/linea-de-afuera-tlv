@@ -87,6 +87,9 @@ export default function CreateTournament() {
 
   const totalPlayersNeeded = formData.jugadores_por_equipo * formData.numero_equipos;
   const hasEnoughPlayers = allPlayers.length >= totalPlayersNeeded;
+  
+  const isMissingRequiredFields = !formData.nombre || !formData.fecha_inicio;
+  const canSubmit = !isMissingRequiredFields && hasEnoughPlayers;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -157,30 +160,49 @@ export default function CreateTournament() {
           )}
 
           {/* Información Básica */}
-          <Card className="border-2 border-sky-100">
-            <CardHeader className="bg-gradient-to-r from-sky-100 to-blue-100">
-              <CardTitle>Información Básica</CardTitle>
+          <Card className={`border-2 ${isMissingRequiredFields ? 'border-red-300 shadow-red-100' : 'border-sky-100'}`}>
+            <CardHeader className={`${isMissingRequiredFields ? 'bg-gradient-to-r from-red-50 to-pink-50' : 'bg-gradient-to-r from-sky-100 to-blue-100'}`}>
+              <CardTitle className="flex items-center justify-between">
+                <span>Información Básica</span>
+                {isMissingRequiredFields && (
+                  <span className="text-xs font-normal text-red-600 bg-red-100 px-2 py-1 rounded">
+                    ⚠️ Campos obligatorios faltantes
+                  </span>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
               <div>
-                <Label htmlFor="nombre">Nombre del Torneo *</Label>
+                <Label htmlFor="nombre" className={!formData.nombre ? 'text-red-600' : ''}>
+                  Nombre del Torneo *
+                </Label>
                 <Input
                   id="nombre"
                   value={formData.nombre}
                   onChange={(e) => setFormData({...formData, nombre: e.target.value})}
                   placeholder="Ej: Summer Beach Tournament 2024"
+                  className={!formData.nombre ? 'border-red-300 focus:border-red-500' : ''}
                 />
+                {!formData.nombre && (
+                  <p className="text-xs text-red-600 mt-1">⚠️ Este campo es obligatorio</p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="fecha_inicio">Fecha y Hora *</Label>
+                  <Label htmlFor="fecha_inicio" className={!formData.fecha_inicio ? 'text-red-600' : ''}>
+                    Fecha y Hora *
+                  </Label>
                   <Input
                     id="fecha_inicio"
                     type="datetime-local"
                     value={formData.fecha_inicio}
                     onChange={(e) => setFormData({...formData, fecha_inicio: e.target.value})}
+                    className={!formData.fecha_inicio ? 'border-red-300 focus:border-red-500' : ''}
                   />
+                  {!formData.fecha_inicio && (
+                    <p className="text-xs text-red-600 mt-1">⚠️ Este campo es obligatorio</p>
+                  )}
                 </div>
 
                 <div>
@@ -202,9 +224,10 @@ export default function CreateTournament() {
                     min="2"
                     value={formData.numero_equipos}
                     onChange={(e) => setFormData({...formData, numero_equipos: parseInt(e.target.value)})}
+                    className={!hasEnoughPlayers ? 'border-red-300' : ''}
                   />
                   {!hasEnoughPlayers && (
-                    <p className="text-xs text-red-600 mt-1">
+                    <p className="text-xs text-red-600 mt-1 font-semibold">
                       ⚠️ Necesitas {totalPlayersNeeded} jugadores. Disponibles: {allPlayers.length}
                     </p>
                   )}
@@ -383,7 +406,8 @@ export default function CreateTournament() {
             <Button
               type="submit"
               size="lg"
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+              disabled={!canSubmit}
+              className={`${canSubmit ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' : 'bg-slate-300 cursor-not-allowed'}`}
             >
               <Plus className="w-5 h-5 mr-2" />
               Crear Torneo

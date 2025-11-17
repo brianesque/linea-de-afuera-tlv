@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -60,9 +61,14 @@ export default function StartTournamentDialog({ tournament, tournamentId }) {
     queryClient.invalidateQueries({ queryKey: ['players'] });
     
     setIsStarting(false);
-    setOpen(false);
+    // The previous setOpen(false) was removed as per the outline.
     navigate(createPageUrl(`TournamentDetail?id=${tournamentId}`));
   };
+
+  // No renderizar el botón si el torneo ya está en curso o finalizado
+  if (tournament.estado === 'en_curso' || tournament.estado === 'finalizado') {
+    return null;
+  }
 
   return (
     <>
