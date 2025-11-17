@@ -1,38 +1,46 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, Star, UserPlus, Edit2, Trash2, LayoutGrid, List, Users } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Plus, Pencil, Trash2, Star, Search, Users, LayoutGrid, List, Filter } from "lucide-react";
+import { toast } from "sonner";
 import BulkPlayerDialog from "../components/players/BulkPlayerDialog";
 
 export default function Players() {
+  const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showDialog, setShowDialog] = useState(false);
-  const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [generoFilter, setGeneroFilter] = useState("todos");
+  const [calificacionFilter, setCalificacionFilter] = useState("todos");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
-  const [formData, setFormData] = useState({ nombre: "", calificacion: 3, genero: "masculino" });
   const [viewMode, setViewMode] = useState("grid");
+  const [formData, setFormData] = useState({
+    nombre: "",
+    calificacion: 3,
+    genero: "masculino"
+  });
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        setUser(null);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const isAdmin = user?.role === 'admin';
 
   const { data: players, isLoading } = useQuery({
     queryKey: ['players'],
@@ -40,263 +48,384 @@ export default function Players() {
     initialData: [],
   });
 
-  const createMutation = useMutation({
+  const createPlayerMutation = useMutation({
     mutationFn: (data) => base44.entities.Player.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
-      setShowDialog(false);
-      setFormData({ nombre: "", calificacion: 3, genero: "masculino" });
+      setIsDialogOpen(false);
+      resetForm();
+      toast.success("Jugador creado exitosamente");
     },
   });
 
-  const updateMutation = useMutation({
+  const updatePlayerMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Player.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
-      setShowDialog(false);
+      setIsDialogOpen(false);
       setEditingPlayer(null);
-      setFormData({ nombre: "", calificacion: 3, genero: "masculino" });
+      resetForm();
+      toast.success("Jugador actualizado");
     },
   });
 
-  const deleteMutation = useMutation({
+  const deletePlayerMutation = useMutation({
     mutationFn: (id) => base44.entities.Player.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
+      toast.success("Jugador eliminado");
     },
   });
 
-  const filteredPlayers = players.filter(player =>
-    player.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPlayers = useMemo(() => {
+    return players.filter(player => {
+      if (searchTerm && !player.nombre.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+
+      if (generoFilter !== "todos" && player.genero !== generoFilter) {
+        return false;
+      }
+
+      if (calificacionFilter !== "todos") {
+        const targetRating = parseInt(calificacionFilter);
+        if (player.calificacion !== targetRating) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [players, searchTerm, generoFilter, calificacionFilter]);
+
+  const resetForm = () => {
+    setFormData({ nombre: "", calificacion: 3, genero: "masculino" });
+    setEditingPlayer(null);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Asegurar que genero siempre tenga un valor
-    const dataToSave = {
-      ...formData,
-      genero: formData.genero || "masculino"
-    };
-    
     if (editingPlayer) {
-      updateMutation.mutate({ id: editingPlayer.id, data: dataToSave });
+      updatePlayerMutation.mutate({ id: editingPlayer.id, data: formData });
     } else {
-      createMutation.mutate(dataToSave);
+      createPlayerMutation.mutate(formData);
     }
   };
 
-  const openEditDialog = (player) => {
+  const handleEdit = (player) => {
     setEditingPlayer(player);
-    setFormData({ nombre: player.nombre, calificacion: player.calificacion, genero: player.genero || "masculino" });
-    setShowDialog(true);
+    setFormData({
+      nombre: player.nombre,
+      calificacion: player.calificacion,
+      genero: player.genero
+    });
+    setIsDialogOpen(true);
   };
 
-  const openCreateDialog = () => {
-    setEditingPlayer(null);
-    setFormData({ nombre: "", calificacion: 3, genero: "masculino" });
-    setShowDialog(true);
+  const handleDelete = (id) => {
+    if (window.confirm("¿Estás seguro de eliminar este jugador?")) {
+      deletePlayerMutation.mutate(id);
+    }
   };
 
-  return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Gestión de Jugadores
-          </h1>
-          <p className="text-gray-600">
-            Administra tu base de datos de jugadores y sus calificaciones
-          </p>
+  const PlayerCard = ({ player }) => (
+    <Card className="border border-slate-200 hover:shadow-md transition-shadow">
+      <CardContent className="pt-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <h3 className="font-bold text-slate-900 text-base mb-1">{player.nombre}</h3>
+            <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}>
+              {player.genero === "femenino" ? "Femenino" : "Masculino"}
+            </Badge>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-1 mb-3">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              className={`w-5 h-5 ${
+                star <= player.calificacion
+                  ? "fill-yellow-400 text-yellow-400"
+                  : "text-slate-300"
+              }`}
+            />
+          ))}
         </div>
 
-        <Card className="mb-6 border-2 border-orange-100 shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+        {isAdmin && (
+          <div className="flex gap-2 pt-3 border-t border-slate-200">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleEdit(player)}
+              className="flex-1 text-xs"
+            >
+              <Pencil className="w-3 h-3 mr-1" />
+              Editar
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleDelete(player.id)}
+              className="flex-1 text-xs"
+            >
+              <Trash2 className="w-3 h-3 mr-1" />
+              Eliminar
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="min-h-screen p-3 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Jugadores</h1>
+            <p className="text-sm text-slate-600">Gestión de jugadores del torneo</p>
+          </div>
+          {isAdmin && (
+            <div className="flex gap-2">
+              <BulkPlayerDialog />
+              <Dialog open={isDialogOpen} onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+              }}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-xs">
+                    <Plus className="w-3 h-3 mr-1" />
+                    Nuevo Jugador
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingPlayer ? "Editar Jugador" : "Nuevo Jugador"}</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="nombre">Nombre</Label>
+                      <Input
+                        id="nombre"
+                        value={formData.nombre}
+                        onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="genero">Género</Label>
+                      <Select value={formData.genero} onValueChange={(value) => setFormData({...formData, genero: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="masculino">Masculino</SelectItem>
+                          <SelectItem value="femenino">Femenino</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="calificacion">Calificación (1-5)</Label>
+                      <Select value={formData.calificacion.toString()} onValueChange={(value) => setFormData({...formData, calificacion: parseInt(value)})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5].map((num) => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {num} {num === 1 ? "estrella" : "estrellas"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button type="submit" className="bg-slate-700 hover:bg-slate-800">
+                        {editingPlayer ? "Actualizar" : "Crear"}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+        </div>
+
+        {/* Filtros */}
+        <Card className="mb-6 border border-slate-200">
+          <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+              <Filter className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+              Buscar y Filtrar
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
-                  placeholder="Buscar jugador por nombre..."
+                  placeholder="Buscar por nombre..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-12 text-lg"
+                  className="pl-9 text-sm"
                 />
               </div>
-              <div className="flex gap-2">
-                <div className="flex border-2 border-gray-300 rounded-lg overflow-hidden">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setViewMode("grid")}
-                    className={`rounded-none h-12 w-12 ${viewMode === "grid" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
-                  >
-                    <LayoutGrid className="w-5 h-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setViewMode("list")}
-                    className={`rounded-none h-12 w-12 ${viewMode === "list" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
-                  >
-                    <List className="w-5 h-5" />
-                  </Button>
-                </div>
+
+              <Select value={generoFilter} onValueChange={setGeneroFilter}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Género" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los géneros</SelectItem>
+                  <SelectItem value="masculino">Masculino</SelectItem>
+                  <SelectItem value="femenino">Femenino</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={calificacionFilter} onValueChange={setCalificacionFilter}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Calificación" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas las calificaciones</SelectItem>
+                  <SelectItem value="5">⭐⭐⭐⭐⭐ (5 estrellas)</SelectItem>
+                  <SelectItem value="4">⭐⭐⭐⭐ (4 estrellas)</SelectItem>
+                  <SelectItem value="3">⭐⭐⭐ (3 estrellas)</SelectItem>
+                  <SelectItem value="2">⭐⭐ (2 estrellas)</SelectItem>
+                  <SelectItem value="1">⭐ (1 estrella)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {(searchTerm || generoFilter !== "todos" || calificacionFilter !== "todos") && (
+                  <>
+                    <p className="text-xs text-slate-600">
+                      Mostrando {filteredPlayers.length} de {players.length} jugadores
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm("");
+                        setGeneroFilter("todos");
+                        setCalificacionFilter("todos");
+                      }}
+                      className="text-xs"
+                    >
+                      Limpiar
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              <div className="flex border border-slate-300 rounded-lg overflow-hidden">
                 <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => setShowBulkDialog(true)}
-                  className="h-12"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                  className={`rounded-none text-xs ${viewMode === "grid" ? "bg-slate-700 text-white hover:bg-slate-800 hover:text-white" : ""}`}
                 >
-                  <Users className="w-5 h-5 mr-2" />
-                  Agregar Varios
+                  <LayoutGrid className="w-3 h-3 mr-1" />
+                  Grid
                 </Button>
                 <Button
-                  size="lg"
-                  onClick={openCreateDialog}
-                  className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 h-12"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className={`rounded-none text-xs ${viewMode === "list" ? "bg-slate-700 text-white hover:bg-slate-800 hover:text-white" : ""}`}
                 >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Nuevo Jugador
+                  <List className="w-3 h-3 mr-1" />
+                  Lista
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Players Display */}
         {isLoading ? (
-          <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-2"}>
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3].map((i) => (
               <Card key={i} className="animate-pulse">
-                <CardContent className="h-32 bg-gray-100" />
+                <CardContent className="h-40 bg-slate-100" />
               </Card>
             ))}
           </div>
         ) : filteredPlayers.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-300">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <UserPlus className="w-16 h-16 text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {searchTerm ? "No se encontraron jugadores" : "No hay jugadores registrados"}
+          <Card className="border-2 border-dashed border-slate-300">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Users className="w-14 h-14 text-slate-400 mb-3" />
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                No se encontraron jugadores
               </h3>
-              <p className="text-gray-600 mb-6">
-                {searchTerm ? "Prueba con otro término de búsqueda" : "Comienza agregando tu primer jugador"}
+              <p className="text-slate-600 text-center text-sm">
+                {(searchTerm || generoFilter !== "todos" || calificacionFilter !== "todos")
+                  ? "Prueba ajustando los filtros"
+                  : isAdmin ? "Comienza agregando jugadores" : "Aún no hay jugadores registrados"}
               </p>
-              {!searchTerm && (
-                <Button size="lg" onClick={openCreateDialog} className="bg-gradient-to-r from-sky-500 to-blue-600">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Agregar Primer Jugador
-                </Button>
-              )}
             </CardContent>
           </Card>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredPlayers.map((player) => (
-              <Card
-                key={player.id}
-                className="hover:shadow-lg transition-all duration-300 border-2 border-sky-100 hover:border-sky-300 bg-gradient-to-br from-white to-sky-50"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg font-bold text-gray-900">
-                        {player.nombre}
-                      </CardTitle>
-                      <Badge className={`mt-2 ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
-                        {player.genero === "femenino" ? "Femenino" : "Masculino"}
-                      </Badge>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openEditDialog(player)}
-                        className="h-8 w-8 hover:bg-sky-100"
-                      >
-                        <Edit2 className="w-4 h-4 text-sky-600" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => deleteMutation.mutate(player.id)}
-                        className="h-8 w-8 hover:bg-red-100"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600 font-medium">Calificación:</span>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-5 h-5 ${
-                            star <= player.calificacion
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <PlayerCard key={player.id} player={player} />
             ))}
           </div>
         ) : (
-          <Card className="border-2 border-sky-100 shadow-lg">
+          <Card className="border border-slate-200">
             <CardContent className="p-0">
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-slate-200">
                 {filteredPlayers.map((player) => (
-                  <div
-                    key={player.id}
-                    className="flex items-center justify-between p-3 hover:bg-sky-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-8 h-8 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                        {player.nombre[0].toUpperCase()}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-gray-900 text-sm">{player.nombre}</p>
-                          <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
-                            {player.genero === "femenino" ? "F" : "M"}
-                          </Badge>
+                  <div key={player.id} className="p-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-slate-900 text-sm mb-1">{player.nombre}</h3>
+                          <div className="flex items-center gap-2">
+                            <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                              {player.genero === "femenino" ? "F" : "M"}
+                            </Badge>
+                            <div className="flex items-center gap-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`w-3 h-3 ${
+                                    star <= player.calificacion
+                                      ? "fill-yellow-400 text-yellow-400"
+                                      : "text-slate-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex gap-1 mt-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-3.5 h-3.5 ${
-                                star <= player.calificacion
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
+                        {isAdmin && (
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(player)}
+                              className="text-xs"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDelete(player.id)}
+                              className="text-xs"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openEditDialog(player)}
-                        className="h-8 w-8 hover:bg-sky-100"
-                      >
-                        <Edit2 className="w-3.5 h-3.5 text-sky-600" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => deleteMutation.mutate(player.id)}
-                        className="h-8 w-8 hover:bg-red-100"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                      </Button>
                     </div>
                   </div>
                 ))}
@@ -304,85 +433,6 @@ export default function Players() {
             </CardContent>
           </Card>
         )}
-
-        <Dialog open={showDialog} onOpenChange={setShowDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingPlayer ? "Editar Jugador" : "Nuevo Jugador"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-4 py-4">
-                <div>
-                  <Label htmlFor="nombre">Nombre del Jugador</Label>
-                  <Input
-                    id="nombre"
-                    value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                    placeholder="Ej: Juan Pérez"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="genero">Género</Label>
-                  <Select
-                    value={formData.genero}
-                    onValueChange={(value) => setFormData({ ...formData, genero: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="masculino">Masculino</SelectItem>
-                      <SelectItem value="femenino">Femenino</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="calificacion">
-                    Calificación (1 = Principiante, 5 = Avanzado)
-                  </Label>
-                  <Select
-                    value={formData.calificacion.toString()}
-                    onValueChange={(value) => setFormData({ ...formData, calificacion: parseInt(value) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5].map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
-                          <div className="flex items-center gap-2">
-                            <span>{num}</span>
-                            <div className="flex gap-1">
-                              {[...Array(num)].map((_, i) => (
-                                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                              ))}
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" className="bg-gradient-to-r from-sky-500 to-blue-600">
-                  {editingPlayer ? "Guardar Cambios" : "Crear Jugador"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        <BulkPlayerDialog 
-          open={showBulkDialog} 
-          onOpenChange={setShowBulkDialog}
-        />
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Star, TrendingUp, LayoutGrid, Table2, Download, Copy, Sparkles, Trophy } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Crown, Star, TrendingUp, LayoutGrid, Table2, Download, Copy, Sparkles, Trophy, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -19,6 +20,7 @@ export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId,
   const [viewMode, setViewMode] = useState("cards");
   const [isReorganizing, setIsReorganizing] = useState(false);
   const [user, setUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -34,6 +36,26 @@ export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId,
   }, []);
 
   const isAdmin = user?.role === 'admin';
+
+  const filteredTeams = useMemo(() => {
+    if (!searchTerm) return teams;
+    
+    return teams.filter(team => {
+      // Buscar por nombre de equipo
+      if (team.nombre.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return true;
+      }
+      
+      // Buscar por nombre de jugadores
+      const teamPlayers = team.jugadores_ids
+        .map(id => allPlayers.find(p => p.id === id))
+        .filter(Boolean);
+      
+      return teamPlayers.some(player => 
+        player.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  }, [teams, allPlayers, searchTerm]);
 
   const handleReorganize = async () => {
     setIsReorganizing(true);
@@ -166,7 +188,7 @@ Responde SOLO con el JSON solicitado.`,
   const handleCopyToClipboard = () => {
     let csv = "Equipo,Jugador,Género,Calificación,Rol,Promedio_Equipo\n";
     
-    teams.forEach(team => {
+    filteredTeams.forEach(team => {
       const teamPlayers = team.jugadores_ids
         .map(id => allPlayers.find(p => p.id === id))
         .filter(Boolean);
@@ -185,7 +207,7 @@ Responde SOLO con el JSON solicitado.`,
   const handleDownloadCSV = () => {
     let csv = "Equipo,Jugador,Género,Calificación,Rol,Promedio_Equipo\n";
     
-    teams.forEach(team => {
+    filteredTeams.forEach(team => {
       const teamPlayers = team.jugadores_ids
         .map(id => allPlayers.find(p => p.id === id))
         .filter(Boolean);
@@ -212,72 +234,94 @@ Responde SOLO con el JSON solicitado.`,
     <div className="space-y-4">
       <Card className="border-2 border-sky-100">
         <CardContent className="pt-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex gap-2">
-              <div className="flex border-2 border-gray-300 rounded-lg overflow-hidden">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setViewMode("cards")}
-                  className={`rounded-none ${viewMode === "cards" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
-                >
-                  <LayoutGrid className="w-4 h-4 mr-2" />
-                  Cards
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setViewMode("table")}
-                  className={`rounded-none ${viewMode === "table" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
-                >
-                  <Table2 className="w-4 h-4 mr-2" />
-                  Tabla
-                </Button>
+          <div className="flex flex-col gap-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Buscar equipo o jugador..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 text-sm"
+              />
+            </div>
+
+            {/* Controls */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex gap-2">
+                <div className="flex border-2 border-gray-300 rounded-lg overflow-hidden">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setViewMode("cards")}
+                    className={`rounded-none text-xs ${viewMode === "cards" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
+                  >
+                    <LayoutGrid className="w-4 h-4 mr-1" />
+                    Cards
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setViewMode("table")}
+                    className={`rounded-none text-xs ${viewMode === "table" ? "bg-sky-500 text-white hover:bg-sky-600 hover:text-white" : ""}`}
+                  >
+                    <Table2 className="w-4 h-4 mr-1" />
+                    Tabla
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 flex-wrap">
+                {isAdmin && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyToClipboard}
+                      className="text-xs"
+                    >
+                      <Copy className="w-3 h-3 mr-1" />
+                      CSV
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadCSV}
+                      className="text-xs"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      Descargar
+                    </Button>
+                  </>
+                )}
+                {tournament?.estado === 'equipos_armados' && isAdmin && (
+                  <Button
+                    size="sm"
+                    onClick={handleReorganize}
+                    disabled={isReorganizing}
+                    className="bg-gradient-to-r from-purple-500 to-pink-600 text-xs"
+                  >
+                    {isReorganizing ? (
+                      <>
+                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                        ...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Reorganizar
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
 
-            <div className="flex gap-2 flex-wrap">
-              {isAdmin && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyToClipboard}
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copiar CSV
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownloadCSV}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Descargar CSV
-                  </Button>
-                </>
-              )}
-              {tournament?.estado === 'equipos_armados' && isAdmin && (
-                <Button
-                  size="sm"
-                  onClick={handleReorganize}
-                  disabled={isReorganizing}
-                  className="bg-gradient-to-r from-purple-500 to-pink-600"
-                >
-                  {isReorganizing ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Reorganizando...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Reorganizar con IA
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
+            {searchTerm && (
+              <p className="text-xs text-slate-600">
+                Mostrando {filteredTeams.length} de {teams.length} equipos
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -285,7 +329,7 @@ Responde SOLO con el JSON solicitado.`,
       <div id="teams-display">
         {viewMode === "cards" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {teams.map((team) => {
+            {filteredTeams.map((team) => {
               const teamPlayers = team.jugadores_ids
                 .map(id => allPlayers.find(p => p.id === id))
                 .filter(Boolean);
@@ -368,7 +412,7 @@ Responde SOLO con el JSON solicitado.`,
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {teams.map((team) => {
+                    {filteredTeams.map((team) => {
                       const teamPlayers = team.jugadores_ids
                         .map(id => allPlayers.find(p => p.id === id))
                         .filter(Boolean);

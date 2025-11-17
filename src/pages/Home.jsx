@@ -1,16 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Trophy, Calendar, Users, Waves } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Trophy, Calendar, Users, Waves, Search, Filter } from "lucide-react";
+import { format, isAfter, isBefore, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function Home() {
   const [user, setUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [estadoFilter, setEstadoFilter] = useState("todos");
+  const [formatoFilter, setFormatoFilter] = useState("todos");
+  const [mesFilter, setMesFilter] = useState("todos");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -31,8 +37,39 @@ export default function Home() {
   });
 
   const isAdmin = user?.role === 'admin';
-  const enCurso = tournaments.filter(t => t.estado === 'en_curso' || t.estado === 'equipos_armados');
-  const finalizados = tournaments.filter(t => t.estado === 'finalizado');
+
+  const filteredTournaments = useMemo(() => {
+    return tournaments.filter(tournament => {
+      // Búsqueda por nombre
+      if (searchTerm && !tournament.nombre.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+
+      // Filtro por estado
+      if (estadoFilter !== "todos" && tournament.estado !== estadoFilter) {
+        return false;
+      }
+
+      // Filtro por formato
+      if (formatoFilter !== "todos" && tournament.formato !== formatoFilter) {
+        return false;
+      }
+
+      // Filtro por mes
+      if (mesFilter !== "todos") {
+        const tournamentDate = new Date(tournament.fecha_inicio);
+        const targetMonth = parseInt(mesFilter);
+        if (tournamentDate.getMonth() !== targetMonth) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [tournaments, searchTerm, estadoFilter, formatoFilter, mesFilter]);
+
+  const enCurso = filteredTournaments.filter(t => t.estado === 'en_curso' || t.estado === 'equipos_armados');
+  const finalizados = filteredTournaments.filter(t => t.estado === 'finalizado');
 
   const getEstadoBadge = (estado) => {
     const estados = {
@@ -115,6 +152,95 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Filtros */}
+        <Card className="mb-6 border border-slate-200">
+          <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+              <Filter className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+              Buscar y Filtrar
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Buscar por nombre..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 text-sm"
+                />
+              </div>
+
+              <Select value={estadoFilter} onValueChange={setEstadoFilter}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los estados</SelectItem>
+                  <SelectItem value="configuracion">Configuración</SelectItem>
+                  <SelectItem value="equipos_armados">Equipos Armados</SelectItem>
+                  <SelectItem value="en_curso">En Curso</SelectItem>
+                  <SelectItem value="finalizado">Finalizado</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={formatoFilter} onValueChange={setFormatoFilter}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Formato" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los formatos</SelectItem>
+                  <SelectItem value="todos_contra_todos">Todos vs Todos</SelectItem>
+                  <SelectItem value="grupos">Grupos</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={mesFilter} onValueChange={setMesFilter}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Mes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los meses</SelectItem>
+                  <SelectItem value="0">Enero</SelectItem>
+                  <SelectItem value="1">Febrero</SelectItem>
+                  <SelectItem value="2">Marzo</SelectItem>
+                  <SelectItem value="3">Abril</SelectItem>
+                  <SelectItem value="4">Mayo</SelectItem>
+                  <SelectItem value="5">Junio</SelectItem>
+                  <SelectItem value="6">Julio</SelectItem>
+                  <SelectItem value="7">Agosto</SelectItem>
+                  <SelectItem value="8">Septiembre</SelectItem>
+                  <SelectItem value="9">Octubre</SelectItem>
+                  <SelectItem value="10">Noviembre</SelectItem>
+                  <SelectItem value="11">Diciembre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(searchTerm || estadoFilter !== "todos" || formatoFilter !== "todos" || mesFilter !== "todos") && (
+              <div className="mt-3 flex items-center gap-2">
+                <p className="text-xs text-slate-600">
+                  Mostrando {filteredTournaments.length} de {tournaments.length} torneos
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setEstadoFilter("todos");
+                    setFormatoFilter("todos");
+                    setMesFilter("todos");
+                  }}
+                  className="text-xs"
+                >
+                  Limpiar filtros
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {enCurso.length > 0 && (
           <div className="mb-6">
             <h2 className="text-xl font-bold text-slate-900 mb-3">Torneos en Curso</h2>
@@ -147,7 +273,9 @@ export default function Home() {
                 No hay torneos finalizados
               </h3>
               <p className="text-slate-600 text-center text-sm max-w-md">
-                Los torneos completados aparecerán aquí
+                {(searchTerm || estadoFilter !== "todos" || formatoFilter !== "todos" || mesFilter !== "todos")
+                  ? "Prueba ajustando los filtros"
+                  : "Los torneos completados aparecerán aquí"}
               </p>
             </CardContent>
           </Card>
