@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,39 +61,45 @@ export default function ManualTeamOrganizer({
       return;
     }
 
-    let updatedTeams = [...teams];
-    let updatedUnassigned = [...unassignedPlayers];
-
     // Remover del origen
     if (source.droppableId === 'unassigned') {
-      updatedUnassigned.splice(source.index, 1);
+      const newUnassigned = Array.from(unassignedPlayers);
+      newUnassigned.splice(source.index, 1);
+      onUnassignedChange(newUnassigned);
     } else {
-      updatedTeams = updatedTeams.map(team => {
+      const newTeams = teams.map(team => {
         if (team.id === source.droppableId) {
-          const newPlayerIds = [...team.jugadores_ids];
+          const newPlayerIds = Array.from(team.jugadores_ids);
           newPlayerIds.splice(source.index, 1);
           return { ...team, jugadores_ids: newPlayerIds };
         }
         return team;
       });
+      onTeamsChange(newTeams);
     }
 
-    // Agregar al destino
-    if (destination.droppableId === 'unassigned') {
-      updatedUnassigned.splice(destination.index, 0, playerId);
-    } else {
-      updatedTeams = updatedTeams.map(team => {
-        if (team.id === destination.droppableId) {
-          const newPlayerIds = [...team.jugadores_ids];
-          newPlayerIds.splice(destination.index, 0, playerId);
-          return { ...team, jugadores_ids: newPlayerIds };
-        }
-        return team;
-      });
-    }
-
-    onTeamsChange(updatedTeams);
-    onUnassignedChange(updatedUnassigned);
+    // Pequeño delay para evitar conflictos de estado
+    setTimeout(() => {
+      // Agregar al destino
+      if (destination.droppableId === 'unassigned') {
+        onUnassignedChange(prev => {
+          const newUnassigned = Array.from(prev);
+          newUnassigned.splice(destination.index, 0, playerId);
+          return newUnassigned;
+        });
+      } else {
+        onTeamsChange(prev => {
+          return prev.map(team => {
+            if (team.id === destination.droppableId) {
+              const newPlayerIds = Array.from(team.jugadores_ids);
+              newPlayerIds.splice(destination.index, 0, playerId);
+              return { ...team, jugadores_ids: newPlayerIds };
+            }
+            return team;
+          });
+        });
+      }
+    }, 0);
   };
 
   const handleTeamNameChange = (teamId, newName) => {
@@ -151,11 +157,11 @@ export default function ManualTeamOrganizer({
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`min-h-[200px] space-y-2 ${snapshot.isDraggingOver ? 'bg-gray-50 rounded-lg' : ''}`}
+                      className={`min-h-[200px] space-y-2 ${snapshot.isDraggingOver ? 'bg-gray-50 rounded-lg p-2' : ''}`}
                     >
                       {unassignedPlayers.length === 0 ? (
                         <p className="text-center text-gray-400 py-8 text-sm">
-                          Todos los jugadores asignados
+                          Todos asignados
                         </p>
                       ) : (
                         unassignedPlayers.map((playerId, index) => {
@@ -171,19 +177,15 @@ export default function ManualTeamOrganizer({
                                   {...provided.dragHandleProps}
                                   className={`p-3 bg-white border-2 border-gray-200 rounded-lg ${snapshot.isDragging ? 'shadow-lg' : ''}`}
                                 >
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <p className="font-semibold text-sm">{player.nombre}</p>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}>
-                                          {player.genero === "femenino" ? "F" : "M"}
-                                        </Badge>
-                                        <div className="flex gap-0.5">
-                                          {[...Array(player.calificacion)].map((_, i) => (
-                                            <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                          ))}
-                                        </div>
-                                      </div>
+                                  <p className="font-semibold text-sm">{player.nombre}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}>
+                                      {player.genero === "femenino" ? "F" : "M"}
+                                    </Badge>
+                                    <div className="flex gap-0.5">
+                                      {[...Array(player.calificacion)].map((_, i) => (
+                                        <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                      ))}
                                     </div>
                                   </div>
                                 </div>
@@ -281,22 +283,20 @@ export default function ManualTeamOrganizer({
                                           : `bg-white border-gray-200 ${snapshot.isDragging ? 'shadow-lg' : ''}`
                                       }`}
                                     >
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                          {isCaptain && <Crown className="w-4 h-4 text-amber-600" />}
-                                          <div>
-                                            <p className={`font-semibold text-sm ${isCaptain ? 'text-amber-900' : ''}`}>
-                                              {player.nombre}
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                              <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}>
-                                                {player.genero === "femenino" ? "F" : "M"}
-                                              </Badge>
-                                              <div className="flex gap-0.5">
-                                                {[...Array(player.calificacion)].map((_, i) => (
-                                                  <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                                ))}
-                                              </div>
+                                      <div className="flex items-center gap-2">
+                                        {isCaptain && <Crown className="w-4 h-4 text-amber-600" />}
+                                        <div>
+                                          <p className={`font-semibold text-sm ${isCaptain ? 'text-amber-900' : ''}`}>
+                                            {player.nombre}
+                                          </p>
+                                          <div className="flex items-center gap-2 mt-1">
+                                            <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}>
+                                              {player.genero === "femenino" ? "F" : "M"}
+                                            </Badge>
+                                            <div className="flex gap-0.5">
+                                              {[...Array(player.calificacion)].map((_, i) => (
+                                                <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                              ))}
                                             </div>
                                           </div>
                                         </div>
@@ -341,39 +341,37 @@ export default function ManualTeamOrganizer({
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`min-h-[100px] ${snapshot.isDraggingOver ? 'bg-gray-50 rounded-lg' : ''}`}
+                      className={`min-h-[100px] space-y-1 ${snapshot.isDraggingOver ? 'bg-gray-50 rounded-lg p-2' : ''}`}
                     >
-                      <div className="space-y-1">
-                        {unassignedPlayers.map((playerId, index) => {
-                          const player = getPlayerById(playerId);
-                          if (!player) return null;
-                          
-                          return (
-                            <Draggable key={playerId} draggableId={playerId} index={index}>
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  className={`p-2 bg-white border border-gray-200 rounded flex items-center justify-between ${snapshot.isDragging ? 'shadow-lg' : ''}`}
-                                >
-                                  <span className="font-semibold text-sm">{player.nombre}</span>
-                                  <div className="flex items-center gap-2">
-                                    <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800 text-xs" : "bg-blue-100 text-blue-800 text-xs"}>
-                                      {player.genero === "femenino" ? "F" : "M"}
-                                    </Badge>
-                                    <div className="flex gap-0.5">
-                                      {[...Array(player.calificacion)].map((_, i) => (
-                                        <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                      ))}
-                                    </div>
+                      {unassignedPlayers.map((playerId, index) => {
+                        const player = getPlayerById(playerId);
+                        if (!player) return null;
+                        
+                        return (
+                          <Draggable key={playerId} draggableId={playerId} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`p-2 bg-white border border-gray-200 rounded flex items-center justify-between ${snapshot.isDragging ? 'shadow-lg' : ''}`}
+                              >
+                                <span className="font-semibold text-sm">{player.nombre}</span>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800 text-xs" : "bg-blue-100 text-blue-800 text-xs"}>
+                                    {player.genero === "femenino" ? "F" : "M"}
+                                  </Badge>
+                                  <div className="flex gap-0.5">
+                                    {[...Array(player.calificacion)].map((_, i) => (
+                                      <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                    ))}
                                   </div>
                                 </div>
-                              )}
-                            </Draggable>
-                          );
-                        })}
-                      </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        );
+                      })}
                       {provided.placeholder}
                     </div>
                   )}
@@ -390,12 +388,10 @@ export default function ManualTeamOrganizer({
               <Card key={team.id} className="border-2 border-sky-200">
                 <Droppable droppableId={team.id}>
                   {(provided, snapshot) => (
-                    <>
+                    <div ref={provided.innerRef} {...provided.droppableProps}>
                       <CardHeader 
                         className={`bg-gradient-to-r from-sky-50 to-blue-50 cursor-pointer ${snapshot.isDraggingOver ? 'bg-sky-100' : ''}`}
                         onClick={() => toggleTeamCollapse(team.id)}
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
@@ -442,9 +438,6 @@ export default function ManualTeamOrganizer({
                           </div>
                           {collapsedTeams[team.id] ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
                         </div>
-                        {snapshot.isDraggingOver && (
-                          <div className="absolute inset-0 bg-sky-200 opacity-30 rounded-t-lg pointer-events-none" />
-                        )}
                       </CardHeader>
                       {!collapsedTeams[team.id] && (
                         <CardContent className="pt-4">
@@ -498,7 +491,7 @@ export default function ManualTeamOrganizer({
                         </CardContent>
                       )}
                       {provided.placeholder}
-                    </>
+                    </div>
                   )}
                 </Droppable>
               </Card>
