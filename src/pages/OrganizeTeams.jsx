@@ -230,7 +230,19 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
       calificacion: p.calificacion
     }));
 
-    const teamsToCreate = teams.map(team => {
+    // Asignar grupos si el formato es por grupos
+    let teamsWithGroups = teams;
+    if (tournament.formato === 'grupos') {
+      const numTeamsTotal = teams.length;
+      const teamsPerGroup = Math.ceil(numTeamsTotal / 2);
+      
+      teamsWithGroups = teams.map((team, index) => ({
+        ...team,
+        grupo: index < teamsPerGroup ? 'A' : 'B'
+      }));
+    }
+
+    const teamsToCreate = teamsWithGroups.map(team => {
       const jugadoresCalificaciones = team.jugadores_ids.map(id => {
         const player = playersData.find(p => p.id === id);
         return player ? player.calificacion : 3;
@@ -243,7 +255,8 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
         numero: team.numero,
         capitan_id: team.capitan_id,
         jugadores_ids: team.jugadores_ids,
-        promedio_calificacion: parseFloat(promedio.toFixed(2))
+        promedio_calificacion: parseFloat(promedio.toFixed(2)),
+        grupo: team.grupo || null
       };
     });
 
@@ -310,9 +323,50 @@ Responde SOLO con el JSON solicitado, sin explicaciones adicionales.`,
           equipo2_id: match.team2.id,
           numero_partido: index + 1,
           horario_estimado: matchTime.toISOString(),
-          estado: 'pendiente'
+          estado: 'pendiente',
+          fase: 'fase_grupos'
         });
       });
+    } else if (tournament.formato === 'grupos') {
+      // Dividir equipos en 2 grupos
+      const grupoA = createdTeams.filter(t => t.grupo === 'A');
+      const grupoB = createdTeams.filter(t => t.grupo === 'B');
+
+      let matchNumber = 1;
+
+      // Crear partidos para Grupo A (todos contra todos)
+      for (let i = 0; i < grupoA.length; i++) {
+        for (let j = i + 1; j < grupoA.length; j++) {
+          const matchTime = new Date(startTime.getTime() + (matchNumber - 1) * tournament.duracion_partido_minutos * 60000);
+          matches.push({
+            tournament_id: tournamentId,
+            equipo1_id: grupoA[i].id,
+            equipo2_id: grupoA[j].id,
+            numero_partido: matchNumber++,
+            horario_estimado: matchTime.toISOString(),
+            estado: 'pendiente',
+            fase: 'fase_grupos',
+            grupo: 'A'
+          });
+        }
+      }
+
+      // Crear partidos para Grupo B (todos contra todos)
+      for (let i = 0; i < grupoB.length; i++) {
+        for (let j = i + 1; j < grupoB.length; j++) {
+          const matchTime = new Date(startTime.getTime() + (matchNumber - 1) * tournament.duracion_partido_minutos * 60000);
+          matches.push({
+            tournament_id: tournamentId,
+            equipo1_id: grupoB[i].id,
+            equipo2_id: grupoB[j].id,
+            numero_partido: matchNumber++,
+            horario_estimado: matchTime.toISOString(),
+            estado: 'pendiente',
+            fase: 'fase_grupos',
+            grupo: 'B'
+          });
+        }
+      }
     }
 
     if (matches.length > 0) {

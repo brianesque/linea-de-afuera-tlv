@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,12 +20,17 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
   const [viewMode, setViewMode] = useState("table");
 
   const matchesByPhase = useMemo(() => {
+    const groupMatches = matches.filter(m => m.fase === 'fase_grupos' || !m.fase);
     return {
-      fase_grupos: matches.filter(m => m.fase === 'fase_grupos' || !m.fase),
+      fase_grupos: groupMatches,
+      grupo_a: groupMatches.filter(m => m.grupo === 'A'),
+      grupo_b: groupMatches.filter(m => m.grupo === 'B'),
       semifinal: matches.filter(m => m.fase === 'semifinal'),
       final: matches.filter(m => m.fase === 'final')
     };
   }, [matches]);
+
+  const hasGroups = matchesByPhase.grupo_a.length > 0 || matchesByPhase.grupo_b.length > 0;
 
   const getTeamName = (teamId) => {
     const team = teams.find(t => t.id === teamId);
@@ -234,19 +238,71 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
 
       {viewMode === "cards" ? (
         <div className="space-y-8">
-          {/* Fase de Grupos */}
-          {matchesByPhase.fase_grupos.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <span className="w-2 h-8 bg-sky-500 rounded"></span>
-                Fase de Grupos
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {matchesByPhase.fase_grupos.map((match) => (
-                  <MatchCard key={match.id} match={match} />
-                ))}
+          {/* Fase de Grupos - Si hay grupos definidos, mostrarlos por separado */}
+          {hasGroups ? (
+            <>
+              {matchesByPhase.grupo_a.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-2 h-8 bg-sky-500 rounded"></span>
+                    Grupo A
+                  </h2>
+                  <div className="mb-4 p-4 bg-sky-50 rounded-lg border-2 border-sky-200">
+                    <p className="font-semibold text-gray-900 mb-2">Equipos del Grupo A:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {teams.filter(t => t.grupo === 'A').map(team => (
+                        <Badge key={team.id} className="bg-sky-600 text-white">
+                          {team.nombre}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {matchesByPhase.grupo_a.map((match) => (
+                      <MatchCard key={match.id} match={match} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {matchesByPhase.grupo_b.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-2 h-8 bg-purple-500 rounded"></span>
+                    Grupo B
+                  </h2>
+                  <div className="mb-4 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                    <p className="font-semibold text-gray-900 mb-2">Equipos del Grupo B:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {teams.filter(t => t.grupo === 'B').map(team => (
+                        <Badge key={team.id} className="bg-purple-600 text-white">
+                          {team.nombre}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {matchesByPhase.grupo_b.map((match) => (
+                      <MatchCard key={match.id} match={match} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            matchesByPhase.fase_grupos.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-8 bg-sky-500 rounded"></span>
+                  Fase de Grupos
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {matchesByPhase.fase_grupos.map((match) => (
+                    <MatchCard key={match.id} match={match} />
+                  ))}
+                </div>
               </div>
-            </div>
+            )
           )}
 
           {/* Semifinales */}
@@ -306,7 +362,9 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
                     const estadoBadge = getEstadoBadge(match.estado);
                     const team1 = teams.find(t => t.id === match.equipo1_id);
                     const team2 = teams.find(t => t.id === match.equipo2_id);
-                    const fase = match.fase === 'semifinal' ? 'Semifinal' : match.fase === 'final' ? 'FINAL' : 'Grupos';
+                    const fase = match.fase === 'semifinal' ? 'Semifinal' : 
+                                 match.fase === 'final' ? 'FINAL' : 
+                                 match.grupo ? `Grupo ${match.grupo}` : 'Grupos';
 
                     return (
                       <TableRow key={match.id} className={match.fase === 'final' ? 'bg-yellow-50' : ''}>
@@ -314,6 +372,8 @@ export default function MatchSchedule({ matches, teams, tournament, isAdmin }) {
                           <Badge className={
                             match.fase === 'final' ? 'bg-yellow-500 text-white' :
                             match.fase === 'semifinal' ? 'bg-purple-500 text-white' :
+                            match.grupo === 'A' ? 'bg-sky-500 text-white' :
+                            match.grupo === 'B' ? 'bg-purple-500 text-white' :
                             'bg-sky-500 text-white'
                           }>
                             {fase}
