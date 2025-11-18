@@ -58,6 +58,14 @@ export default function TeamsGrid({ teams, allPlayers, tournament, tournamentId,
     });
   }, [teams, allPlayers, searchTerm]);
 
+  const teamsByGroup = useMemo(() => {
+    const grupoA = filteredTeams.filter(t => t.grupo === 'A');
+    const grupoB = filteredTeams.filter(t => t.grupo === 'B');
+    const sinGrupo = filteredTeams.filter(t => !t.grupo);
+    
+    return { grupoA, grupoB, sinGrupo, hasGroups: grupoA.length > 0 || grupoB.length > 0 };
+  }, [filteredTeams]);
+
   const handleReorganize = async () => {
     setIsReorganizing(true);
 
@@ -389,8 +397,167 @@ Responde SOLO con el JSON solicitado.`,
 
       <div id="teams-display">
         {viewMode === "cards" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredTeams.map((team) => {
+          teamsByGroup.hasGroups ? (
+            <div className="space-y-8">
+              {teamsByGroup.grupoA.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-2 h-8 bg-sky-500 rounded"></span>
+                    Grupo A
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {teamsByGroup.grupoA.map((team) => {
+                      const teamPlayers = team.jugadores_ids
+                        .map(id => allPlayers.find(p => p.id === id))
+                        .filter(Boolean);
+                      const isWinner = winnerTeamId === team.id;
+
+                      return (
+                        <Card key={team.id} className={`border-2 shadow-lg hover:shadow-xl transition-all ${isWinner ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50' : 'border-sky-100'}`}>
+                          <CardHeader className={`border-b-2 ${isWinner ? 'bg-gradient-to-br from-yellow-100 to-amber-100 border-yellow-200' : 'bg-gradient-to-br from-sky-100 to-blue-100 border-sky-200'}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <Badge className="bg-sky-600 text-white">Grupo A</Badge>
+                                  {isWinner && <Trophy className="w-6 h-6 text-yellow-500" />}
+                                </div>
+                                <CardTitle className="text-xl font-bold text-gray-900 mt-2">
+                                  {team.nombre}
+                                </CardTitle>
+                                {isAdmin && (
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Badge className="bg-sky-500 text-white">
+                                      <TrendingUp className="w-3 h-3 mr-1" />
+                                      Promedio: {team.promedio_calificacion}
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pt-4">
+                            <div className="space-y-3">
+                              {teamPlayers.map((player) => {
+                                const isCaptain = player.id === team.capitan_id;
+                                return (
+                                  <div
+                                    key={player.id}
+                                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
+                                      isCaptain
+                                        ? "bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-300"
+                                        : "bg-white border-gray-200"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      {isCaptain && <Crown className="w-5 h-5 text-amber-600" />}
+                                      <span className={`font-semibold ${isCaptain ? 'text-amber-900' : 'text-gray-900'}`}>
+                                        {player.nombre}
+                                      </span>
+                                      <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                                        {player.genero === "femenino" ? "F" : "M"}
+                                      </Badge>
+                                      {isWinner && <Trophy className="w-4 h-4 text-yellow-500" />}
+                                    </div>
+                                    {isAdmin && (
+                                      <div className="flex items-center gap-1">
+                                        {[...Array(player.calificacion)].map((_, i) => (
+                                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {teamsByGroup.grupoB.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-2 h-8 bg-purple-500 rounded"></span>
+                    Grupo B
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {teamsByGroup.grupoB.map((team) => {
+                      const teamPlayers = team.jugadores_ids
+                        .map(id => allPlayers.find(p => p.id === id))
+                        .filter(Boolean);
+                      const isWinner = winnerTeamId === team.id;
+
+                      return (
+                        <Card key={team.id} className={`border-2 shadow-lg hover:shadow-xl transition-all ${isWinner ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50' : 'border-purple-100'}`}>
+                          <CardHeader className={`border-b-2 ${isWinner ? 'bg-gradient-to-br from-yellow-100 to-amber-100 border-yellow-200' : 'bg-gradient-to-br from-purple-100 to-pink-100 border-purple-200'}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <Badge className="bg-purple-600 text-white">Grupo B</Badge>
+                                  {isWinner && <Trophy className="w-6 h-6 text-yellow-500" />}
+                                </div>
+                                <CardTitle className="text-xl font-bold text-gray-900 mt-2">
+                                  {team.nombre}
+                                </CardTitle>
+                                {isAdmin && (
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Badge className="bg-purple-500 text-white">
+                                      <TrendingUp className="w-3 h-3 mr-1" />
+                                      Promedio: {team.promedio_calificacion}
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pt-4">
+                            <div className="space-y-3">
+                              {teamPlayers.map((player) => {
+                                const isCaptain = player.id === team.capitan_id;
+                                return (
+                                  <div
+                                    key={player.id}
+                                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
+                                      isCaptain
+                                        ? "bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-300"
+                                        : "bg-white border-gray-200"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      {isCaptain && <Crown className="w-5 h-5 text-amber-600" />}
+                                      <span className={`font-semibold ${isCaptain ? 'text-amber-900' : 'text-gray-900'}`}>
+                                        {player.nombre}
+                                      </span>
+                                      <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                                        {player.genero === "femenino" ? "F" : "M"}
+                                      </Badge>
+                                      {isWinner && <Trophy className="w-4 h-4 text-yellow-500" />}
+                                    </div>
+                                    {isAdmin && (
+                                      <div className="flex items-center gap-1">
+                                        {[...Array(player.calificacion)].map((_, i) => (
+                                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredTeams.map((team) => {
               const teamPlayers = team.jugadores_ids
                 .map(id => allPlayers.find(p => p.id === id))
                 .filter(Boolean);
@@ -457,6 +624,7 @@ Responde SOLO con el JSON solicitado.`,
               );
             })}
           </div>
+          )
         ) : (
           <Card className="border-2 border-sky-100 shadow-lg">
             <CardContent className="p-0">
@@ -464,6 +632,7 @@ Responde SOLO con el JSON solicitado.`,
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gradient-to-r from-sky-100 to-blue-100">
+                      {teamsByGroup.hasGroups && <TableHead className="font-bold">Grupo</TableHead>}
                       <TableHead className="font-bold">Equipo</TableHead>
                       <TableHead className="font-bold">Jugador</TableHead>
                       <TableHead className="font-bold">Género</TableHead>
@@ -483,6 +652,13 @@ Responde SOLO con el JSON solicitado.`,
                         const isCaptain = player.id === team.capitan_id;
                         return (
                           <TableRow key={`${team.id}-${player.id}`} className={`${idx === 0 ? "border-t-2 border-sky-200" : ""} ${isWinner ? 'bg-gradient-to-r from-yellow-50 to-amber-50' : ''}`}>
+                            {teamsByGroup.hasGroups && idx === 0 && (
+                              <TableCell rowSpan={teamPlayers.length} className="font-semibold">
+                                <Badge className={team.grupo === 'A' ? 'bg-sky-600 text-white' : 'bg-purple-600 text-white'}>
+                                  Grupo {team.grupo}
+                                </Badge>
+                              </TableCell>
+                            )}
                             {idx === 0 && (
                               <TableCell rowSpan={teamPlayers.length} className={`font-semibold ${isWinner ? 'bg-yellow-50' : 'bg-sky-50'}`}>
                                 <div className="flex items-center gap-2">
