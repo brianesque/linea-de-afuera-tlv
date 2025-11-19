@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Crown, Star, Users, TrendingUp, Check, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import MobileTeamOrganizer from "./MobileTeamOrganizer";
 
 export default function ManualTeamOrganizer({ 
   teams, 
@@ -150,10 +151,23 @@ export default function ManualTeamOrganizer({
         </CardContent>
       </Card>
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex flex-col lg:flex-row gap-6 items-start h-[calc(100vh-200px)] overflow-hidden">
+      {/* Mobile View */}
+      <div className="block lg:hidden h-[calc(100vh-280px)]">
+        <MobileTeamOrganizer
+          teams={teams}
+          unassignedPlayers={unassignedPlayers}
+          onTeamsChange={onTeamsChange}
+          onUnassignedChange={onUnassignedChange}
+          playersData={playersData}
+          playersPerTeam={playersPerTeam}
+        />
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden lg:flex flex-col lg:flex-row gap-6 items-start h-[calc(100vh-200px)] overflow-hidden">
+        <DragDropContext onDragEnd={onDragEnd}>
           {/* Left Column - Unassigned - 30% */}
-          <div className="lg:w-[30%] w-full h-full overflow-y-auto pb-20">
+          <div className="w-[30%] h-full overflow-y-auto pb-20">
             <Card className="border-2 border-gray-300 h-full flex flex-col">
               <CardHeader className="bg-gray-100 sticky top-0 z-10 border-b">
                 <div className="flex items-center justify-between">
@@ -209,11 +223,13 @@ export default function ManualTeamOrganizer({
           </div>
 
           {/* Right Column - Teams - 70% */}
-          <div className="lg:w-[70%] w-full h-full overflow-y-auto pb-20 px-1">
+          <div className="w-[70%] h-full overflow-y-auto pb-20 px-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {teams.map((team) => {
                 const promedio = calculateTeamAverage(team.jugadores_ids);
                 const isComplete = team.jugadores_ids.length === playersPerTeam;
+                const captain = getPlayerById(team.capitan_id);
+                const captainName = captain ? captain.nombre : "Sin Capitán";
                 
                 return (
                   <Card 
@@ -268,7 +284,7 @@ export default function ManualTeamOrganizer({
                                     </Button>
                                   </div>
                                 )}
-                                <div className="flex items-center gap-2 mt-2">
+                                <div className="flex items-center flex-wrap gap-2 mt-2">
                                   <Badge variant="outline" className="bg-white text-xs border-gray-300">
                                     <TrendingUp className="w-3 h-3 mr-1 text-gray-500" />
                                     Prom: {promedio}
@@ -280,7 +296,11 @@ export default function ManualTeamOrganizer({
                                         : "bg-orange-100 text-orange-700 border-orange-200"
                                     }`}
                                   >
-                                    {team.jugadores_ids.length} / {playersPerTeam}
+                                    {team.jugadores_ids.length} Jugadores
+                                  </Badge>
+                                  <Badge variant="outline" className="bg-white text-xs border-gray-300 text-amber-700">
+                                    <Crown className="w-3 h-3 mr-1 text-amber-500" />
+                                    Cap: {captainName}
                                   </Badge>
                                 </div>
                               </div>
@@ -347,8 +367,8 @@ export default function ManualTeamOrganizer({
               })}
             </div>
           </div>
-        </div>
-      </DragDropContext>
+        </DragDropContext>
+      </div>
 
       <div className="flex justify-between">
         <Button
