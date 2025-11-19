@@ -151,29 +151,25 @@ export default function ManualTeamOrganizer({
       </Card>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="space-y-4">
-          {/* Sin asignar Mobile */}
-          <Card className="border-2 border-gray-300">
-            <CardHeader 
-              className="bg-gray-100 cursor-pointer"
-              onClick={() => toggleTeamCollapse('unassigned')}
-            >
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Users className="w-5 h-5" />
-                  Sin Asignar ({unassignedPlayers.length})
-                </CardTitle>
-                {collapsedTeams['unassigned'] ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
-              </div>
-            </CardHeader>
-            {!collapsedTeams['unassigned'] && (
-              <CardContent className="pt-4">
+        <div className="flex flex-col lg:flex-row gap-6 items-start h-[calc(100vh-200px)] overflow-hidden">
+          {/* Left Column - Unassigned - 30% */}
+          <div className="lg:w-[30%] w-full h-full overflow-y-auto pb-20">
+            <Card className="border-2 border-gray-300 h-full flex flex-col">
+              <CardHeader className="bg-gray-100 sticky top-0 z-10 border-b">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Users className="w-5 h-5" />
+                    Sin Asignar ({unassignedPlayers.length})
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4 flex-1 overflow-y-auto">
                 <Droppable droppableId="unassigned">
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`min-h-[100px] space-y-1 ${snapshot.isDraggingOver ? 'bg-gray-50 rounded-lg p-2' : ''}`}
+                      className={`min-h-[100px] space-y-2 ${snapshot.isDraggingOver ? 'bg-gray-50 rounded-lg p-2' : ''}`}
                     >
                       {unassignedPlayers.map((playerId, index) => {
                         const player = getPlayerById(playerId);
@@ -186,19 +182,19 @@ export default function ManualTeamOrganizer({
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className={`p-2 bg-white border border-gray-200 rounded flex items-center justify-between ${snapshot.isDragging ? 'shadow-lg' : ''}`}
+                                className={`p-3 bg-white border border-gray-200 rounded-lg flex items-center justify-between hover:shadow-md transition-shadow ${snapshot.isDragging ? 'shadow-xl ring-2 ring-sky-500' : ''}`}
                               >
-                                <span className="font-semibold text-sm">{player.nombre}</span>
-                                <div className="flex items-center gap-2">
-                                  <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800 text-xs" : "bg-blue-100 text-blue-800 text-xs"}>
-                                    {player.genero === "femenino" ? "F" : "M"}
-                                  </Badge>
-                                  <div className="flex gap-0.5">
+                                <div>
+                                  <span className="font-semibold text-sm block">{player.nombre}</span>
+                                  <div className="flex gap-0.5 mt-1">
                                     {[...Array(player.calificacion)].map((_, i) => (
                                       <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                                     ))}
                                   </div>
                                 </div>
+                                <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800 text-xs" : "bg-blue-100 text-blue-800 text-xs"}>
+                                  {player.genero === "femenino" ? "F" : "M"}
+                                </Badge>
                               </div>
                             )}
                           </Draggable>
@@ -209,126 +205,148 @@ export default function ManualTeamOrganizer({
                   )}
                 </Droppable>
               </CardContent>
-            )}
-          </Card>
+            </Card>
+          </div>
 
-          {/* Equipos Mobile */}
-          {teams.map((team) => {
-            const promedio = calculateTeamAverage(team.jugadores_ids);
-
-            return (
-              <Card key={team.id} className="border-2 border-sky-200">
-                <Droppable droppableId={team.id}>
-                  {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps}>
-                      <CardHeader 
-                        className={`bg-gradient-to-r from-sky-50 to-blue-50 cursor-pointer ${snapshot.isDraggingOver ? 'bg-sky-100' : ''}`}
-                        onClick={() => toggleTeamCollapse(team.id)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            {editingTeamId === team.id ? (
-                              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                                <Input
-                                  value={teamNames[team.id]}
-                                  onChange={(e) => handleTeamNameChange(team.id, e.target.value)}
-                                  className="text-sm"
-                                  autoFocus
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleSaveTeamName(team.id)}
-                                  className="bg-green-500 hover:bg-green-600"
-                                >
-                                  <Check className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-between">
-                                <CardTitle className="text-sm">{team.nombre}</CardTitle>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setEditingTeamId(team.id);
-                                  }}
-                                >
-                                  <Pencil className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge className="bg-sky-600 text-white text-xs">
-                                <TrendingUp className="w-2 h-2 mr-1" />
-                                {promedio}
-                              </Badge>
-                              <Badge className="bg-gray-600 text-white text-xs">
-                                {team.jugadores_ids.length}
-                              </Badge>
-                            </div>
-                          </div>
-                          {collapsedTeams[team.id] ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
-                        </div>
-                      </CardHeader>
-                      {!collapsedTeams[team.id] && (
-                        <CardContent className="pt-4">
-                          <div className="space-y-1">
-                            {team.jugadores_ids.map((playerId, index) => {
-                              const player = getPlayerById(playerId);
-                              if (!player) return null;
-                              
-                              const isCaptain = playerId === team.capitan_id;
-
-                              return (
-                                <Draggable 
-                                  key={playerId} 
-                                  draggableId={playerId} 
-                                  index={index}
-                                  isDragDisabled={isCaptain}
-                                >
-                                  {(provided, snapshot) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      className={`p-2 rounded border flex items-center justify-between ${
-                                        isCaptain 
-                                          ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-300 cursor-not-allowed' 
-                                          : `bg-white border-gray-200 ${snapshot.isDragging ? 'shadow-lg' : ''}`
-                                      }`}
+          {/* Right Column - Teams - 70% */}
+          <div className="lg:w-[70%] w-full h-full overflow-y-auto pb-20 px-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {teams.map((team) => {
+                const promedio = calculateTeamAverage(team.jugadores_ids);
+                const isComplete = team.jugadores_ids.length === playersPerTeam;
+                
+                return (
+                  <Card 
+                    key={team.id} 
+                    className={`border-2 transition-all duration-300 ${
+                      isComplete 
+                        ? "border-green-500 bg-green-50/30" 
+                        : "border-orange-200 bg-white"
+                    }`}
+                  >
+                    <Droppable droppableId={team.id}>
+                      {(provided, snapshot) => (
+                        <div ref={provided.innerRef} {...provided.droppableProps}>
+                          <CardHeader 
+                            className={`cursor-pointer transition-colors ${
+                              isComplete 
+                                ? 'bg-green-100/50' 
+                                : 'bg-gray-50'
+                            } ${snapshot.isDraggingOver ? 'bg-sky-100' : ''}`}
+                            onClick={() => toggleTeamCollapse(team.id)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                {editingTeamId === team.id ? (
+                                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                    <Input
+                                      value={teamNames[team.id]}
+                                      onChange={(e) => handleTeamNameChange(team.id, e.target.value)}
+                                      className="text-sm bg-white"
+                                      autoFocus
+                                    />
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleSaveTeamName(team.id)}
+                                      className="bg-green-500 hover:bg-green-600"
                                     >
-                                      <div className="flex items-center gap-2">
-                                        {isCaptain && <Crown className="w-3 h-3 text-amber-600" />}
-                                        <span className={`font-semibold text-sm ${isCaptain ? 'text-amber-900' : ''}`}>
-                                          {player.nombre}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800 text-xs" : "bg-blue-100 text-blue-800 text-xs"}>
-                                          {player.genero === "femenino" ? "F" : "M"}
-                                        </Badge>
-                                        <div className="flex gap-0.5">
-                                          {[...Array(player.calificacion)].map((_, i) => (
-                                            <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                          ))}
+                                      <Check className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-between">
+                                    <CardTitle className="text-sm font-bold text-gray-800">{team.nombre}</CardTitle>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingTeamId(team.id);
+                                      }}
+                                    >
+                                      <Pencil className="w-3 h-3 text-gray-500" />
+                                    </Button>
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Badge variant="outline" className="bg-white text-xs border-gray-300">
+                                    <TrendingUp className="w-3 h-3 mr-1 text-gray-500" />
+                                    Prom: {promedio}
+                                  </Badge>
+                                  <Badge 
+                                    className={`text-xs border ${
+                                      isComplete 
+                                        ? "bg-green-500 text-white border-green-600" 
+                                        : "bg-orange-100 text-orange-700 border-orange-200"
+                                    }`}
+                                  >
+                                    {team.jugadores_ids.length} / {playersPerTeam}
+                                  </Badge>
+                                </div>
+                              </div>
+                              {collapsedTeams[team.id] ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronUp className="w-5 h-5 text-gray-400" />}
+                            </div>
+                          </CardHeader>
+                          {!collapsedTeams[team.id] && (
+                            <CardContent className="pt-3">
+                              <div className="space-y-2">
+                                {team.jugadores_ids.map((playerId, index) => {
+                                  const player = getPlayerById(playerId);
+                                  if (!player) return null;
+                                  
+                                  const isCaptain = playerId === team.capitan_id;
+
+                                  return (
+                                    <Draggable 
+                                      key={playerId} 
+                                      draggableId={playerId} 
+                                      index={index}
+                                      isDragDisabled={isCaptain}
+                                    >
+                                      {(provided, snapshot) => (
+                                        <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                          className={`p-2 rounded border flex items-center justify-between ${
+                                            isCaptain 
+                                              ? 'bg-amber-50 border-amber-200 cursor-not-allowed' 
+                                              : `bg-white border-gray-200 hover:border-sky-300 ${snapshot.isDragging ? 'shadow-lg ring-2 ring-sky-500 z-50' : ''}`
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            {isCaptain && <Crown className="w-3 h-3 text-amber-500" />}
+                                            <span className={`font-medium text-xs ${isCaptain ? 'text-amber-900' : 'text-gray-700'}`}>
+                                              {player.nombre}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-1">
+                                            <Badge variant="secondary" className={`text-[10px] px-1 h-5 ${player.genero === "femenino" ? "bg-pink-50 text-pink-700" : "bg-blue-50 text-blue-700"}`}>
+                                              {player.genero === "femenino" ? "F" : "M"}
+                                            </Badge>
+                                            <div className="flex -space-x-0.5">
+                                              {[...Array(player.calificacion)].map((_, i) => (
+                                                <Star key={i} className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                                              ))}
+                                            </div>
+                                          </div>
                                         </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </Draggable>
-                              );
-                            })}
-                          </div>
-                        </CardContent>
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                              </div>
+                            </CardContent>
+                          )}
+                          {provided.placeholder}
+                        </div>
                       )}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </Card>
-            );
-          })}
+                    </Droppable>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </DragDropContext>
 
