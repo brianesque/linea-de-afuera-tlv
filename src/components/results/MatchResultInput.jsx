@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -173,13 +172,6 @@ export default function MatchResultInput({ match, team1, team2 }) {
     updateMatchMutation.mutate({ id: match.id, data: updateData });
   };
 
-  const handleStart = () => {
-    updateMatchMutation.mutate({
-      id: match.id,
-      data: { estado: 'en_juego' }
-    });
-  };
-
   const handleOpenDialog = () => {
     setScores({
       set1_equipo1: match.set1_equipo1 || "",
@@ -195,26 +187,24 @@ export default function MatchResultInput({ match, team1, team2 }) {
 
   return (
     <>
-      {match.estado === 'pendiente' ? (
-        <Button
-          size="sm"
-          onClick={handleStart}
-          className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
-        >
-          <Play className="w-4 h-4 mr-2" />
-          Iniciar Partido
-        </Button>
-      ) : (
-        <Button
-          size="sm"
-          onClick={handleOpenDialog}
-          variant={match.estado === 'finalizado' ? 'outline' : 'default'}
-          className="w-full"
-        >
-          <Edit2 className="w-4 h-4 mr-2" />
-          {match.estado === 'finalizado' ? 'Editar Resultado' : 'Cargar Resultado'}
-        </Button>
-      )}
+      <Button
+        size="sm"
+        onClick={handleOpenDialog}
+        variant={match.estado === 'finalizado' ? 'outline' : 'default'}
+        className="w-full"
+      >
+        {match.estado === 'finalizado' ? (
+          <>
+            <Edit2 className="w-4 h-4 mr-2" />
+            Editar Resultado
+          </>
+        ) : (
+          <>
+            <Play className="w-4 h-4 mr-2" />
+            Cargar Resultado
+          </>
+        )}
+      </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
