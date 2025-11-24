@@ -310,7 +310,7 @@ export default function Players() {
                 size="sm" 
                 variant="outline" 
                 onClick={() => setIsBulkDialogOpen(true)}
-                className="bg-white hover:bg-slate-50 text-slate-700 border-slate-300 text-xs"
+                className="bg-white hover:bg-slate-50 text-slate-600 border-slate-200 text-xs"
               >
                 <Users className="w-3 h-3 mr-1" />
                 Carga Masiva
@@ -321,7 +321,7 @@ export default function Players() {
                 if (!open) resetForm();
               }}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-xs">
+                  <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs">
                     <Plus className="w-3 h-3 mr-1" />
                     Nuevo Jugador
                   </Button>
