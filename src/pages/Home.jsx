@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Trophy, Calendar, Users, Waves, Search, Filter } from "lucide-react";
+import { Plus, Trophy, Calendar, Users, Waves, Search, Filter, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { format, isAfter, isBefore, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -17,6 +18,9 @@ export default function Home() {
   const [estadoFilter, setEstadoFilter] = useState("todos");
   const [formatoFilter, setFormatoFilter] = useState("todos");
   const [mesFilter, setMesFilter] = useState("todos");
+
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -37,6 +41,34 @@ export default function Home() {
   });
 
   const isAdmin = user?.role === 'admin';
+
+  const deleteTournamentMutation = useMutation({
+    mutationFn: async (tournamentIdToDelete) => {
+      const matchesToDelete = await base44.entities.Match.filter({ tournament_id: tournamentIdToDelete });
+      for (const match of matchesToDelete) {
+        await base44.entities.Match.delete(match.id);
+      }
+      
+      const teamsToDelete = await base44.entities.Team.filter({ tournament_id: tournamentIdToDelete });
+      for (const team of teamsToDelete) {
+        await base44.entities.Team.delete(team.id);
+      }
+      
+      await base44.entities.Tournament.delete(tournamentIdToDelete);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tournaments'] });
+      toast.success("Torneo eliminado");
+    },
+  });
+
+  const handleDeleteTournament = (e, tournament) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (window.confirm(`¿Estás seguro de eliminar el torneo "${tournament.nombre}"?`)) {
+      deleteTournamentMutation.mutate(tournament.id);
+    }
+  };
 
   const filteredTournaments = useMemo(() => {
     return tournaments.filter(tournament => {
@@ -84,11 +116,11 @@ export default function Home() {
   const TournamentCard = ({ tournament }) => {
     const estadoBadge = getEstadoBadge(tournament.estado);
     return (
-      <Link to={createPageUrl(`TournamentDetail?id=${tournament.id}`)}>
-        <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white border border-slate-200 hover:border-slate-300">
-          <CardHeader className="bg-slate-50 border-b border-slate-200 pb-3">
+      <Link to={createPageUrl(`TournamentDetail?id=${tournament.id}`)} className="block relative group">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white border border-slate-200 hover:border-slate-300 h-full">
+          <CardHeader className="bg-slate-50 border-b border-slate-200 pb-3 relative">
             <div className="flex items-start justify-between">
-              <CardTitle className="text-base md:text-lg font-bold text-slate-900">
+              <CardTitle className="text-base md:text-lg font-bold text-slate-900 pr-8">
                 {tournament.nombre}
               </CardTitle>
               <Trophy className="w-5 h-5 text-slate-600" />
@@ -98,6 +130,33 @@ export default function Home() {
                 {estadoBadge.label}
               </span>
             </div>
+            
+            {isAdmin && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8 bg-white/90 hover:bg-white shadow-sm border border-slate-200"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`));
+                  }}
+                  title="Editar"
+                >
+                  <Pencil className="h-4 w-4 text-slate-600" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="h-8 w-8 shadow-sm"
+                  onClick={(e) => handleDeleteTournament(e, tournament)}
+                  title="Eliminar"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="pt-3">
             <div className="space-y-2">
