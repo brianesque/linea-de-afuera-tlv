@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Trophy, Users, Home, LogOut, BarChart3, Settings, Plus, Calendar, Sun, Moon } from "lucide-react";
+import { Trophy, Users, Home, LogOut, BarChart3, Settings, Plus, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -24,17 +24,6 @@ export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('darkMode');
-      return saved ? JSON.parse(saved) : false;
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-  }, [darkMode]);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -100,7 +89,7 @@ export default function Layout({ children, currentPageName }) {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-slate-50'}`}>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="w-16 h-16 border-4 border-slate-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -108,16 +97,9 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className={`min-h-screen flex w-full ${darkMode ? 'bg-gray-900' : 'bg-slate-50'}`}>
-        <style>{`
-          :root {
-            --primary: ${darkMode ? '59 130 246' : '15 23 42'};
-            --primary-foreground: 255 255 255;
-          }
-        `}</style>
-        
-        <Sidebar className={`border-r ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-slate-200 bg-white'}`}>
-          <SidebarHeader className={`border-b ${darkMode ? 'border-gray-700' : 'border-slate-200'} p-6`}>
+      <div className="min-h-screen flex w-full bg-slate-50">
+        <Sidebar className="border-r border-slate-200 bg-white">
+          <SidebarHeader className="border-b border-slate-200 p-6">
             <div className="flex items-center gap-3">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/eeac2486c_logo.png" 
@@ -125,15 +107,15 @@ export default function Layout({ children, currentPageName }) {
                 className="w-10 h-10 rounded-xl object-cover shadow-sm"
               />
               <div>
-                <h2 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-slate-800'}`}>Línea De Afuera</h2>
-                <p className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-slate-500'}`}>TLV Beach Vóley</p>
+                <h2 className="font-bold text-lg text-slate-800">Línea De Afuera</h2>
+                <p className="text-xs font-medium text-slate-500">TLV Beach Vóley</p>
               </div>
             </div>
           </SidebarHeader>
           
           <SidebarContent className="p-3">
             <SidebarGroup>
-              <SidebarGroupLabel className={`text-[10px] font-semibold uppercase tracking-wider px-3 py-2 ${darkMode ? 'text-gray-400' : 'text-slate-400'}`}>
+              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider px-3 py-2 text-slate-400">
                 Navegación
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -143,13 +125,9 @@ export default function Layout({ children, currentPageName }) {
                       <SidebarMenuButton 
                         asChild 
                         className={`transition-colors duration-200 rounded-lg mb-1 ${
-                          darkMode 
-                            ? location.pathname === item.url 
-                              ? 'bg-gray-700 text-white font-medium' 
-                              : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                            : location.pathname === item.url 
-                              ? 'bg-slate-100 text-slate-800 font-medium' 
-                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                          location.pathname === item.url 
+                            ? 'bg-slate-100 text-slate-800 font-medium' 
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
@@ -157,7 +135,7 @@ export default function Layout({ children, currentPageName }) {
                             <div className="flex flex-col">
                               <span className="font-medium">{item.title}</span>
                               {item.subtitle && (
-                                <span className={`text-[10px] -mt-0.5 ${darkMode ? 'text-gray-400' : 'text-slate-400'}`}>{item.subtitle}</span>
+                                <span className="text-[10px] -mt-0.5 text-slate-400">{item.subtitle}</span>
                               )}
                             </div>
                           </Link>
@@ -169,28 +147,17 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className={`border-t ${darkMode ? 'border-gray-700' : 'border-slate-200'} p-4`}>
+          <SidebarFooter className="border-t border-slate-200 p-4">
             <div className="space-y-3">
-              {/* Theme Toggle */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDarkMode(!darkMode)}
-                className={`w-full ${darkMode ? 'border-gray-600 bg-gray-700 text-white hover:bg-gray-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-              >
-                {darkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-                {darkMode ? 'Modo Claro' : 'Modo Oscuro'}
-              </Button>
-              
               {user ? (
                 <>
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${darkMode ? 'bg-blue-600' : 'bg-slate-700'}`}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-slate-700">
                       {user.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium text-sm truncate ${darkMode ? 'text-white' : 'text-slate-800'}`}>{user.email}</p>
-                      <Badge className={isAdmin ? (darkMode ? "bg-blue-600 text-white" : "bg-blue-600 text-white") : (darkMode ? "bg-gray-600 text-gray-200" : "bg-slate-200 text-slate-600")}>
+                      <p className="font-medium text-sm truncate text-slate-800">{user.email}</p>
+                      <Badge className={isAdmin ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-600"}>
                         {isAdmin ? "Administrador" : "Usuario"}
                       </Badge>
                     </div>
@@ -199,7 +166,7 @@ export default function Layout({ children, currentPageName }) {
                     variant="outline"
                     size="sm"
                     onClick={handleLogout}
-                    className={`w-full ${darkMode ? 'border-gray-600 text-gray-200 hover:bg-gray-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                    className="w-full border-slate-200 text-slate-600 hover:bg-slate-50"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Cerrar Sesión
@@ -207,15 +174,15 @@ export default function Layout({ children, currentPageName }) {
                 </>
               ) : (
                 <div className="space-y-2">
-                  <div className={`flex items-center gap-2 p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-slate-50'}`}>
-                    <Users className={`w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-slate-500'}`} />
-                    <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-slate-600'}`}>Modo Invitado</span>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50">
+                    <Users className="w-4 h-4 text-slate-500" />
+                    <span className="text-sm font-medium text-slate-600">Modo Invitado</span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleLogin}
-                    className={`w-full ${darkMode ? 'border-gray-600 text-gray-200 hover:bg-gray-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                    className="w-full border-slate-200 text-slate-600 hover:bg-slate-50"
                   >
                     Iniciar Sesión Admin
                   </Button>
@@ -226,18 +193,18 @@ export default function Layout({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-slate-200'} border-b px-6 py-4 lg:hidden`}>
+          <header className="bg-white border-slate-200 border-b px-6 py-4 lg:hidden">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className={`p-2 rounded-lg transition-colors duration-200 ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-slate-50 text-slate-600'}`} />
+              <SidebarTrigger className="p-2 rounded-lg transition-colors duration-200 hover:bg-slate-50 text-slate-600" />
               <div className="flex items-center gap-2">
-                <Trophy className={`w-6 h-6 ${darkMode ? 'text-blue-400' : 'text-slate-700'}`} />
-                <h1 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>Línea De Afuera</h1>
+                <Trophy className="w-6 h-6 text-slate-700" />
+                <h1 className="text-lg font-bold text-slate-800">Línea De Afuera</h1>
               </div>
             </div>
           </header>
 
-          <div className={`flex-1 overflow-auto ${darkMode ? 'bg-gray-900 text-white' : 'bg-slate-50'}`}>
-            {React.cloneElement(children, { darkMode })}
+          <div className="flex-1 overflow-auto bg-slate-50">
+            {children}
           </div>
         </main>
       </div>

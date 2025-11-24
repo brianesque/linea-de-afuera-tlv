@@ -13,7 +13,7 @@ import DeleteTournamentDialog from "@/components/home/DeleteTournamentDialog";
 import { format, isAfter, isBefore, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function Home({ darkMode = false }) {
+export default function Home() {
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("todos");
