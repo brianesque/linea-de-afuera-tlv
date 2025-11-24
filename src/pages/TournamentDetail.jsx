@@ -264,12 +264,10 @@ export default function TournamentDetail() {
   const showChat = tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados' || tournament.estado === 'configuracion';
   const showComments = tournament.estado === 'finalizado';
 
-  const sidebarFilteredPlayers = useMemo(() => {
-    if (!sidebarSearchTerm) return participantes;
-    return participantes.filter(p => 
-      p.nombre.toLowerCase().includes(sidebarSearchTerm.toLowerCase())
-    );
-  }, [participantes, sidebarSearchTerm]);
+  // Using regular filter instead of useMemo to avoid hook order issues
+  const sidebarFilteredPlayers = sidebarSearchTerm 
+    ? participantes.filter(p => p.nombre.toLowerCase().includes(sidebarSearchTerm.toLowerCase()))
+    : participantes;
 
   const handleToggleComparison = (playerId) => {
     setComparisonPlayerIds(prev => {
