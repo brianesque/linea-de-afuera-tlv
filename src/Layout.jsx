@@ -169,17 +169,28 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-gray-200 p-4">
+          <SidebarFooter className={`border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} p-4`}>
             <div className="space-y-3">
+              {/* Theme Toggle */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDarkMode(!darkMode)}
+                className={`w-full ${darkMode ? 'border-gray-600 bg-gray-700 text-white hover:bg-gray-600' : 'border-slate-300 hover:bg-slate-50'}`}
+              >
+                {darkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                {darkMode ? 'Modo Claro' : 'Modo Oscuro'}
+              </Button>
+              
               {user ? (
                 <>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-600 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${darkMode ? 'bg-blue-600' : 'bg-slate-600'}`}>
                       {user.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 text-sm truncate">{user.email}</p>
-                      <Badge className={isAdmin ? "bg-slate-700 text-white" : "bg-slate-200 text-slate-700"}>
+                      <p className={`font-medium text-sm truncate ${darkMode ? 'text-white' : 'text-slate-900'}`}>{user.email}</p>
+                      <Badge className={isAdmin ? (darkMode ? "bg-blue-600 text-white" : "bg-slate-700 text-white") : (darkMode ? "bg-gray-600 text-gray-200" : "bg-slate-200 text-slate-700")}>
                         {isAdmin ? "Administrador" : "Usuario"}
                       </Badge>
                     </div>
@@ -188,7 +199,7 @@ export default function Layout({ children, currentPageName }) {
                     variant="outline"
                     size="sm"
                     onClick={handleLogout}
-                    className="w-full border-slate-300 hover:bg-slate-50"
+                    className={`w-full ${darkMode ? 'border-gray-600 text-gray-200 hover:bg-gray-700' : 'border-slate-300 hover:bg-slate-50'}`}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Cerrar Sesión
@@ -196,15 +207,15 @@ export default function Layout({ children, currentPageName }) {
                 </>
               ) : (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 p-2 bg-slate-100 rounded-lg">
-                    <Users className="w-4 h-4 text-slate-600" />
-                    <span className="text-sm font-medium text-slate-700">Modo Invitado</span>
+                  <div className={`flex items-center gap-2 p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-slate-100'}`}>
+                    <Users className={`w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-slate-600'}`} />
+                    <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-slate-700'}`}>Modo Invitado</span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleLogin}
-                    className="w-full border-slate-300 hover:bg-slate-50"
+                    className={`w-full ${darkMode ? 'border-gray-600 text-gray-200 hover:bg-gray-700' : 'border-slate-300 hover:bg-slate-50'}`}
                   >
                     Iniciar Sesión Admin
                   </Button>
