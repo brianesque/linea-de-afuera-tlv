@@ -71,8 +71,7 @@ export default function Layout({ children, currentPageName }) {
       title: "Estadísticas",
       url: createPageUrl("PlayerStats"),
       icon: BarChart3,
-      show: true,
-      subtitle: "Click en jugador para ver más"
+      show: true
     },
     {
       title: "Plantillas",

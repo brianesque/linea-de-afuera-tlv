@@ -337,7 +337,7 @@ export default function PlayerStats() {
             <span>Estadísticas</span>
           </h1>
           <p className="text-sm text-slate-600">
-            Rendimiento de jugadores
+            Rendimiento de jugadores · <span className="text-slate-500">Click en un jugador para ver estadísticas avanzadas</span>
           </p>
         </div>
 
