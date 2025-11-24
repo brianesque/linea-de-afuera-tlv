@@ -260,9 +260,9 @@ export default function CreateTournament() {
           </Card>
 
           {/* Formato del Torneo */}
-          <Card className="border border-slate-200">
-            <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
-              <CardTitle className="text-sm md:text-base">Formato</CardTitle>
+          <Card className="border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="bg-white border-b border-slate-100 py-3">
+              <CardTitle className="text-sm md:text-base text-slate-700">Formato</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-3 md:space-y-4">
               <div>
