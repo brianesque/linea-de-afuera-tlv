@@ -322,7 +322,6 @@ export default function Templates() {
                     <Input
                       id="puntos_por_set"
                       type="number"
-                      min="15"
                       value={formData.puntos_por_set}
                       onChange={(e) => setFormData({...formData, puntos_por_set: parseInt(e.target.value)})}
                     />

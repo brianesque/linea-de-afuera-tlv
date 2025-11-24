@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -251,8 +250,6 @@ export default function CreateTournament() {
                   <Input
                     id="puntos_por_set"
                     type="number"
-                    min="15"
-                    max="25"
                     value={formData.puntos_por_set}
                     onChange={(e) => setFormData({...formData, puntos_por_set: parseInt(e.target.value)})}
                     className="text-sm"
