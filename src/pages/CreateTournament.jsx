@@ -341,9 +341,9 @@ export default function CreateTournament() {
           </Card>
 
           {/* Logística */}
-          <Card className="border border-slate-200">
-            <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
-              <CardTitle className="text-sm md:text-base">Logística</CardTitle>
+          <Card className="border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="bg-white border-b border-slate-100 py-3">
+              <CardTitle className="text-sm md:text-base text-slate-700">Logística</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-3">
               <div className="grid grid-cols-1 gap-3">
