@@ -79,6 +79,24 @@ export default function TournamentDetail() {
     initialData: [],
   });
 
+  const { data: allTeams } = useQuery({
+    queryKey: ['all-teams'],
+    queryFn: () => base44.entities.Team.list(),
+    initialData: [],
+  });
+
+  const { data: allMatches } = useQuery({
+    queryKey: ['all-matches'],
+    queryFn: () => base44.entities.Match.list(),
+    initialData: [],
+  });
+
+  const { data: allTournaments } = useQuery({
+    queryKey: ['all-tournaments'],
+    queryFn: () => base44.entities.Tournament.list(),
+    initialData: [],
+  });
+
   const updateTournamentMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Tournament.update(id, data),
     onSuccess: () => {
@@ -245,24 +263,6 @@ export default function TournamentDetail() {
 
   const showChat = tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados' || tournament.estado === 'configuracion';
   const showComments = tournament.estado === 'finalizado';
-
-  const { data: allTeams } = useQuery({
-    queryKey: ['all-teams'],
-    queryFn: () => base44.entities.Team.list(),
-    initialData: [],
-  });
-
-  const { data: allMatches } = useQuery({
-    queryKey: ['all-matches'],
-    queryFn: () => base44.entities.Match.list(),
-    initialData: [],
-  });
-
-  const { data: allTournaments } = useQuery({
-    queryKey: ['all-tournaments'],
-    queryFn: () => base44.entities.Tournament.list(),
-    initialData: [],
-  });
 
   const sidebarFilteredPlayers = useMemo(() => {
     if (!sidebarSearchTerm) return participantes;
