@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Trophy, Users, Home, LogOut, BarChart3, Settings, Plus, Calendar } from "lucide-react";
+import { Trophy, Users, Home, LogOut, BarChart3, Settings, Plus, Calendar, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -24,6 +24,21 @@ export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('darkMode') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', darkMode);
+  }, [darkMode]);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -97,16 +112,19 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className={`min-h-screen flex w-full ${darkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
         <style>{`
           :root {
             --primary: 15 23 42;
             --primary-foreground: 255 255 255;
           }
+          .dark {
+            color-scheme: dark;
+          }
         `}</style>
         
-        <Sidebar className="border-r border-gray-200 bg-white">
-          <SidebarHeader className="border-b border-gray-200 p-6">
+        <Sidebar className={`border-r ${darkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-200 bg-white'}`}>
+          <SidebarHeader className={`border-b ${darkMode ? 'border-slate-700' : 'border-gray-200'} p-6`}>
             <div className="flex items-center gap-3">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/eeac2486c_logo.png" 
@@ -114,15 +132,15 @@ export default function Layout({ children, currentPageName }) {
                 className="w-10 h-10 rounded-xl object-cover shadow-sm"
               />
               <div>
-                <h2 className="font-bold text-slate-900 text-lg">Línea De Afuera</h2>
-                <p className="text-xs text-slate-600 font-medium">TLV Beach Vóley</p>
+                <h2 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-slate-900'}`}>Línea De Afuera</h2>
+                <p className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>TLV Beach Vóley</p>
               </div>
             </div>
           </SidebarHeader>
           
           <SidebarContent className="p-3">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
+              <SidebarGroupLabel className={`text-xs font-semibold uppercase tracking-wider px-3 py-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                 Navegación
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -131,8 +149,10 @@ export default function Layout({ children, currentPageName }) {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className={`hover:bg-slate-100 hover:text-slate-900 transition-colors duration-200 rounded-lg mb-1 ${
-                          location.pathname === item.url ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600'
+                        className={`transition-colors duration-200 rounded-lg mb-1 ${
+                          location.pathname === item.url 
+                            ? darkMode ? 'bg-slate-700 text-white font-medium' : 'bg-slate-100 text-slate-900 font-medium'
+                            : darkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
@@ -140,7 +160,7 @@ export default function Layout({ children, currentPageName }) {
                             <div className="flex flex-col">
                               <span className="font-medium">{item.title}</span>
                               {item.subtitle && (
-                                <span className="text-[10px] text-slate-500 -mt-0.5">{item.subtitle}</span>
+                                <span className={`text-[10px] -mt-0.5 ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>{item.subtitle}</span>
                               )}
                             </div>
                           </Link>
@@ -152,8 +172,19 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-gray-200 p-4">
+          <SidebarFooter className={`border-t ${darkMode ? 'border-slate-700' : 'border-gray-200'} p-4`}>
             <div className="space-y-3">
+              {/* Dark Mode Toggle */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDarkMode(!darkMode)}
+                className={`w-full ${darkMode ? 'border-slate-600 bg-slate-700 text-white hover:bg-slate-600' : 'border-slate-300 hover:bg-slate-50'}`}
+              >
+                {darkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                {darkMode ? 'Modo Claro' : 'Modo Oscuro'}
+              </Button>
+
               {user ? (
                 <>
                   <div className="flex items-center gap-3">
@@ -161,8 +192,8 @@ export default function Layout({ children, currentPageName }) {
                       {user.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 text-sm truncate">{user.email}</p>
-                      <Badge className={isAdmin ? "bg-slate-700 text-white" : "bg-slate-200 text-slate-700"}>
+                      <p className={`font-medium text-sm truncate ${darkMode ? 'text-white' : 'text-slate-900'}`}>{user.email}</p>
+                      <Badge className={isAdmin ? "bg-slate-700 text-white" : darkMode ? "bg-slate-600 text-slate-200" : "bg-slate-200 text-slate-700"}>
                         {isAdmin ? "Administrador" : "Usuario"}
                       </Badge>
                     </div>
@@ -171,7 +202,7 @@ export default function Layout({ children, currentPageName }) {
                     variant="outline"
                     size="sm"
                     onClick={handleLogout}
-                    className="w-full border-slate-300 hover:bg-slate-50"
+                    className={`w-full ${darkMode ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-slate-300 hover:bg-slate-50'}`}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Cerrar Sesión
@@ -179,15 +210,15 @@ export default function Layout({ children, currentPageName }) {
                 </>
               ) : (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 p-2 bg-slate-100 rounded-lg">
-                    <Users className="w-4 h-4 text-slate-600" />
-                    <span className="text-sm font-medium text-slate-700">Modo Invitado</span>
+                  <div className={`flex items-center gap-2 p-2 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                    <Users className={`w-4 h-4 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`} />
+                    <span className={`text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>Modo Invitado</span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleLogin}
-                    className="w-full border-slate-300 hover:bg-slate-50"
+                    className={`w-full ${darkMode ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-slate-300 hover:bg-slate-50'}`}
                   >
                     Iniciar Sesión Admin
                   </Button>
@@ -198,17 +229,17 @@ export default function Layout({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className="bg-white border-b border-gray-200 px-6 py-4 lg:hidden">
+          <header className={`${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border-b px-6 py-4 lg:hidden`}>
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200" />
+              <SidebarTrigger className={`p-2 rounded-lg transition-colors duration-200 ${darkMode ? 'hover:bg-slate-700 text-white' : 'hover:bg-slate-100'}`} />
               <div className="flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-slate-700" />
-                <h1 className="text-lg font-bold text-slate-900">Línea De Afuera</h1>
+                <Trophy className={`w-6 h-6 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`} />
+                <h1 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Línea De Afuera</h1>
               </div>
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto">
+          <div className={`flex-1 overflow-auto ${darkMode ? 'bg-slate-900' : ''}`}>
             {children}
           </div>
         </main>
