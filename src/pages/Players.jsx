@@ -645,6 +645,7 @@ export default function Players() {
                   onToggleComparison={handleToggleComparison}
                   searchTerm={sidebarSearchTerm}
                   onSearchChange={setSidebarSearchTerm}
+                  isAdmin={isAdmin}
                 />
               </div>
               
@@ -663,6 +664,7 @@ export default function Players() {
                   tournaments={tournaments}
                   teams={teams}
                   matches={matches}
+                  isAdmin={isAdmin}
                 />
               </div>
             </div>

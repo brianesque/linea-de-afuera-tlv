@@ -16,7 +16,8 @@ export default function PlayerStatsPanel({
   onClose,
   tournaments,
   teams,
-  matches
+  matches,
+  isAdmin = false
 }) {
   const getPlayerStats = (player) => {
     if (!player) return null;
@@ -399,18 +400,20 @@ export default function PlayerStatsPanel({
                 {selectedPlayer?.genero === "femenino" ? "F" : "M"}
               </Badge>
             </div>
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={`w-4 h-4 ${
-                    star <= (selectedPlayer?.calificacion || 0)
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-slate-300"
-                  }`}
-                />
-              ))}
-            </div>
+            {isAdmin && (
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-4 h-4 ${
+                      star <= (selectedPlayer?.calificacion || 0)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-slate-300"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
             {comparisonPlayerIds.length < 3 && !isInComparison(selectedPlayerId) && (
               <Button
                 size="sm"
