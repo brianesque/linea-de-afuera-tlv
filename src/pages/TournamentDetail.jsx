@@ -585,18 +585,7 @@ export default function TournamentDetail() {
                                   {player.genero === "femenino" ? "Femenino" : "Masculino"}
                                 </p>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-xs text-slate-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedPlayerId(player.id);
-                                }}
-                              >
-                                <TrendingUp className="w-3 h-3 mr-1" />
-                                Stats
-                              </Button>
+                              <TrendingUp className="w-4 h-4 text-slate-400" />
                             </div>
                           </CardContent>
                         </Card>

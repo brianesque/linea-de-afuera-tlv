@@ -394,26 +394,28 @@ export default function PlayerStatsPanel({
         <CardContent className="pt-4 space-y-4">
           {/* Selected Player Header */}
           <div className="p-3 bg-slate-100 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-bold text-slate-900">{selectedPlayer?.nombre}</h3>
-              <Badge className={selectedPlayer?.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}>
-                {selectedPlayer?.genero === "femenino" ? "F" : "M"}
-              </Badge>
-            </div>
-            {isAdmin && (
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className={`w-4 h-4 ${
-                      star <= (selectedPlayer?.calificacion || 0)
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-slate-300"
-                    }`}
-                  />
-                ))}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-slate-900">{selectedPlayer?.nombre}</h3>
+                <Badge className={`text-[10px] ${selectedPlayer?.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                  {selectedPlayer?.genero === "femenino" ? "F" : "M"}
+                </Badge>
               </div>
-            )}
+              {isAdmin && (
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-3 h-3 ${
+                        star <= (selectedPlayer?.calificacion || 0)
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-slate-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
             {comparisonPlayerIds.length < 3 && !isInComparison(selectedPlayerId) && (
               <Button
                 size="sm"

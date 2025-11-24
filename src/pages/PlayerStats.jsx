@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Trophy, Award, BarChart3, Filter, LayoutGrid, List, ArrowUpDown } from "lucide-react";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -15,12 +16,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import PlayerStatsPanel from "../components/players/PlayerStatsPanel";
+import PlayerListSidebar from "../components/players/PlayerListSidebar";
 
 export default function PlayerStats() {
+  const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [generoFilter, setGeneroFilter] = useState("todos");
   const [viewMode, setViewMode] = useState("table");
   const [sortBy, setSortBy] = useState("nombre");
+  const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+  const [comparisonPlayerIds, setComparisonPlayerIds] = useState([]);
+  const [sidebarSearchTerm, setSidebarSearchTerm] = useState("");
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        setUser(null);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const isAdmin = user?.role === 'admin';
 
   const { data: players, isLoading } = useQuery({
     queryKey: ['players'],
@@ -216,6 +237,23 @@ export default function PlayerStats() {
     return filtered;
   }, [playersWithStats, searchTerm, generoFilter, sortBy]);
 
+  const sidebarFilteredPlayers = sidebarSearchTerm 
+    ? players.filter(p => p.nombre.toLowerCase().includes(sidebarSearchTerm.toLowerCase()))
+    : players;
+
+  const handleToggleComparison = (playerId) => {
+    setComparisonPlayerIds(prev => {
+      if (prev.includes(playerId)) {
+        return prev.filter(id => id !== playerId);
+      }
+      if (prev.length >= 3) {
+        toast.error("Máximo 3 jugadores para comparar");
+        return prev;
+      }
+      return [...prev, playerId];
+    });
+  };
+
   const PlayerCard = ({ player }) => {
     const stats = player.stats;
     return (
@@ -406,7 +444,9 @@ export default function PlayerStats() {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredAndSortedPlayers.map((player) => (
-              <PlayerCard key={player.id} player={player} />
+              <div key={player.id} onClick={() => setSelectedPlayerId(player.id)} className="cursor-pointer">
+                <PlayerCard player={player} />
+              </div>
             ))}
           </div>
         ) : (
@@ -479,7 +519,11 @@ export default function PlayerStats() {
                     {filteredAndSortedPlayers.map((player) => {
                       const stats = player.stats;
                       return (
-                        <TableRow key={player.id} className="hover:bg-slate-50">
+                        <TableRow 
+                          key={player.id} 
+                          className="hover:bg-slate-50 cursor-pointer"
+                          onClick={() => setSelectedPlayerId(player.id)}
+                        >
                           <TableCell className="font-semibold text-slate-900">{player.nombre}</TableCell>
                           <TableCell>
                             <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
@@ -519,6 +563,52 @@ export default function PlayerStats() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Stats Panel Overlay */}
+        {selectedPlayerId && (
+          <div className="fixed inset-0 z-50 flex">
+            <div 
+              className="absolute inset-0 bg-black/50"
+              onClick={() => {
+                setSelectedPlayerId(null);
+                setComparisonPlayerIds([]);
+              }}
+            />
+            
+            <div className="relative flex h-full w-full max-w-4xl ml-auto">
+              <div className="w-64 h-full bg-white shadow-xl">
+                <PlayerListSidebar
+                  players={sidebarFilteredPlayers}
+                  selectedPlayerId={selectedPlayerId}
+                  comparisonPlayerIds={comparisonPlayerIds}
+                  onSelectPlayer={setSelectedPlayerId}
+                  onToggleComparison={handleToggleComparison}
+                  searchTerm={sidebarSearchTerm}
+                  onSearchChange={setSidebarSearchTerm}
+                  isAdmin={isAdmin}
+                />
+              </div>
+              
+              <div className="flex-1 h-full bg-white shadow-xl overflow-hidden">
+                <PlayerStatsPanel
+                  players={players}
+                  selectedPlayerId={selectedPlayerId}
+                  comparisonPlayerIds={comparisonPlayerIds}
+                  onSelectPlayer={setSelectedPlayerId}
+                  onToggleComparison={handleToggleComparison}
+                  onClose={() => {
+                    setSelectedPlayerId(null);
+                    setComparisonPlayerIds([]);
+                  }}
+                  tournaments={tournaments}
+                  teams={teams}
+                  matches={matches}
+                  isAdmin={isAdmin}
+                />
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
