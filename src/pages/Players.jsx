@@ -106,10 +106,16 @@ export default function Players() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Ensure genero is set, fallback to masculino if missing
+    const dataToSubmit = {
+      ...formData,
+      genero: formData.genero || "masculino"
+    };
+    
     if (editingPlayer) {
-      updatePlayerMutation.mutate({ id: editingPlayer.id, data: formData });
+      updatePlayerMutation.mutate({ id: editingPlayer.id, data: dataToSubmit });
     } else {
-      createPlayerMutation.mutate(formData);
+      createPlayerMutation.mutate(dataToSubmit);
     }
   };
 
@@ -118,7 +124,7 @@ export default function Players() {
     setFormData({
       nombre: player.nombre,
       calificacion: player.calificacion,
-      genero: player.genero
+      genero: player.genero || "masculino"
     });
     setIsDialogOpen(true);
   };
