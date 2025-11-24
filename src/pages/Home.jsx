@@ -115,16 +115,16 @@ export default function Home({ darkMode = false }) {
         onClick={() => navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`))} 
         className="block relative group cursor-pointer h-full"
       >
-        <Card className={`hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full ${darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-          <CardHeader className={`pb-3 relative ${darkMode ? 'bg-gray-750 border-b border-gray-700' : 'bg-slate-50 border-b border-slate-200'}`}>
+        <Card className={`hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 h-full shadow-sm ${darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+          <CardHeader className={`pb-3 relative ${darkMode ? 'bg-gray-750 border-b border-gray-700' : 'bg-white border-b border-slate-100'}`}>
             <div className="flex items-start justify-between">
-              <CardTitle className={`text-base md:text-lg font-bold pr-8 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+              <CardTitle className={`text-base md:text-lg font-bold pr-8 ${darkMode ? 'text-white' : 'text-slate-800'}`}>
                 {tournament.nombre}
               </CardTitle>
-              <Trophy className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-slate-600'}`} />
+              <Trophy className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-slate-400'}`} />
             </div>
             <div className="mt-2">
-              <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${estadoBadge.class}`}>
+              <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${estadoBadge.class}`}>
                 {estadoBadge.label}
               </span>
             </div>
@@ -137,11 +137,11 @@ export default function Home({ darkMode = false }) {
                 <Button
                   size="icon"
                   variant="secondary"
-                  className={`h-8 w-8 shadow-sm ${darkMode ? 'bg-gray-700/90 hover:bg-gray-600 border-gray-600' : 'bg-white/90 hover:bg-white border-slate-200'}`}
+                  className={`h-8 w-8 shadow-sm ${darkMode ? 'bg-gray-700/90 hover:bg-gray-600 border-gray-600' : 'bg-white hover:bg-slate-50 border-slate-200'}`}
                   onClick={() => navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`))}
                   title="Editar"
                 >
-                  <Pencil className={`h-4 w-4 ${darkMode ? 'text-gray-300' : 'text-slate-600'}`} />
+                  <Pencil className={`h-4 w-4 ${darkMode ? 'text-gray-300' : 'text-slate-500'}`} />
                 </Button>
                 <DeleteTournamentDialog 
                   tournamentName={tournament.nombre}
@@ -152,20 +152,20 @@ export default function Home({ darkMode = false }) {
           </CardHeader>
           <CardContent className="pt-3">
             <div className="space-y-2">
-              <div className={`flex items-center gap-2 text-xs ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
-                <Calendar className={`w-3.5 h-3.5 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`} />
+              <div className={`flex items-center gap-2 text-xs ${darkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+                <Calendar className={`w-3.5 h-3.5 ${darkMode ? 'text-gray-400' : 'text-slate-400'}`} />
                 <span className="truncate">
                   {format(new Date(tournament.fecha_inicio), "d 'de' MMMM, yyyy • HH:mm", { locale: es })}
                 </span>
               </div>
-              <div className={`flex items-center gap-2 text-xs ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
-                <Users className={`w-3.5 h-3.5 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`} />
+              <div className={`flex items-center gap-2 text-xs ${darkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+                <Users className={`w-3.5 h-3.5 ${darkMode ? 'text-gray-400' : 'text-slate-400'}`} />
                 <span>
                   {tournament.jugadores_por_equipo} jugadores por equipo
                 </span>
               </div>
-              <div className={`pt-2 border-t ${darkMode ? 'border-gray-700' : 'border-slate-200'}`}>
-                <p className={`text-xs uppercase tracking-wide font-semibold ${darkMode ? 'text-gray-400' : 'text-slate-500'}`}>
+              <div className={`pt-2 border-t ${darkMode ? 'border-gray-700' : 'border-slate-100'}`}>
+                <p className={`text-[10px] uppercase tracking-wider font-semibold ${darkMode ? 'text-gray-400' : 'text-slate-400'}`}>
                   {tournament.formato === 'todos_contra_todos' ? 'Todos contra todos' : 'Grupos'}
                 </p>
               </div>
