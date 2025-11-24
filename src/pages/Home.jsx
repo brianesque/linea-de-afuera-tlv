@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Plus, Trophy, Calendar, Users, Waves, Search, Filter, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import DeleteTournamentDialog from "@/components/home/DeleteTournamentDialog";
 import { format, isAfter, isBefore, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -62,13 +63,7 @@ export default function Home() {
     },
   });
 
-  const handleDeleteTournament = (e, tournament) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (window.confirm(`¿Estás seguro de eliminar el torneo "${tournament.nombre}"?`)) {
-      deleteTournamentMutation.mutate(tournament.id);
-    }
-  };
+
 
   const filteredTournaments = useMemo(() => {
     return tournaments.filter(tournament => {
