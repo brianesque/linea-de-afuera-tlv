@@ -21,7 +21,7 @@ export default function DeleteTournamentDialog({ tournamentName, onDelete }) {
           size="icon"
           variant="destructive"
           className="h-8 w-8 shadow-sm"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
           title="Eliminar"
         >
           <Trash2 className="h-4 w-4" />

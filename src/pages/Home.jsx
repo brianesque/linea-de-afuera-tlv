@@ -111,7 +111,10 @@ export default function Home() {
   const TournamentCard = ({ tournament }) => {
     const estadoBadge = getEstadoBadge(tournament.estado);
     return (
-      <Link to={createPageUrl(`TournamentDetail?id=${tournament.id}`)} className="block relative group">
+      <div 
+        onClick={() => navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`))} 
+        className="block relative group cursor-pointer h-full"
+      >
         <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white border border-slate-200 hover:border-slate-300 h-full">
           <CardHeader className="bg-slate-50 border-b border-slate-200 pb-3 relative">
             <div className="flex items-start justify-between">
@@ -170,7 +173,7 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
-      </Link>
+      </div>
     );
   };
 
