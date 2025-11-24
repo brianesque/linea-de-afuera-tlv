@@ -45,6 +45,11 @@ export default function TournamentDetail() {
 
   const isAdmin = user?.role === 'admin';
 
+  // State for player stats panel - must be before any conditional returns
+  const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+  const [comparisonPlayerIds, setComparisonPlayerIds] = useState([]);
+  const [sidebarSearchTerm, setSidebarSearchTerm] = useState("");
+
   const { data: tournament, isLoading } = useQuery({
     queryKey: ['tournament', tournamentId],
     queryFn: async () => {
@@ -240,11 +245,6 @@ export default function TournamentDetail() {
 
   const showChat = tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados' || tournament.estado === 'configuracion';
   const showComments = tournament.estado === 'finalizado';
-
-  // State for player stats panel
-  const [selectedPlayerId, setSelectedPlayerId] = useState(null);
-  const [comparisonPlayerIds, setComparisonPlayerIds] = useState([]);
-  const [sidebarSearchTerm, setSidebarSearchTerm] = useState("");
 
   const { data: allTeams } = useQuery({
     queryKey: ['all-teams'],
