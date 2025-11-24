@@ -450,14 +450,14 @@ export default function PlayerStats() {
             ))}
           </div>
         ) : (
-          <Card className="border border-slate-200">
+          <Card className="border border-slate-200 bg-white shadow-sm">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-slate-100 to-slate-50">
+                    <TableRow className="bg-slate-50 border-b border-slate-200">
                       <TableHead 
-                        className="font-bold cursor-pointer hover:bg-slate-200"
+                        className="font-semibold text-slate-600 cursor-pointer hover:bg-slate-100"
                         onClick={() => setSortBy("nombre")}
                       >
                         <div className="flex items-center">
