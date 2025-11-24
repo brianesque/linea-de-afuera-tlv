@@ -480,64 +480,167 @@ export default function Players() {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredPlayers.map((player) => (
-              <PlayerCard key={player.id} player={player} />
+              <div key={player.id} onClick={() => setSelectedPlayerId(player.id)} className="cursor-pointer">
+                <PlayerCard player={player} />
+              </div>
             ))}
           </div>
         ) : (
           <Card className="border border-slate-200">
             <CardContent className="p-0">
-              <div className="divide-y divide-slate-200">
-                {filteredPlayers.map((player) => (
-                  <div key={player.id} className="p-4 hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-slate-900 text-sm mb-1">{player.nombre}</h3>
-                          <div className="flex items-center gap-2">
-                            <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
-                              {player.genero === "femenino" ? "F" : "M"}
-                            </Badge>
-                            <div className="flex items-center gap-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={`w-3 h-3 ${
-                                    star <= player.calificacion
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "text-slate-300"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-slate-50">
+                      <TableHead 
+                        className="font-bold cursor-pointer hover:bg-slate-100"
+                        onClick={() => handleSort("nombre")}
+                      >
+                        <div className="flex items-center">
+                          Nombre
+                          <SortIcon column="nombre" />
                         </div>
-                        {isAdmin && (
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(player)}
-                              className="text-xs"
-                            >
-                              <Pencil className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDelete(player.id)}
-                              className="text-xs"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
+                      </TableHead>
+                      <TableHead 
+                        className="font-bold cursor-pointer hover:bg-slate-100"
+                        onClick={() => handleSort("genero")}
+                      >
+                        <div className="flex items-center">
+                          Género
+                          <SortIcon column="genero" />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-bold cursor-pointer hover:bg-slate-100"
+                        onClick={() => handleSort("calificacion")}
+                      >
+                        <div className="flex items-center">
+                          Calificación
+                          <SortIcon column="calificacion" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="font-bold text-center">Estadísticas</TableHead>
+                      {isAdmin && <TableHead className="font-bold">Acciones</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPlayers.map((player) => (
+                      <TableRow 
+                        key={player.id} 
+                        className={`hover:bg-slate-50 cursor-pointer ${selectedPlayerId === player.id ? 'bg-slate-100' : ''}`}
+                        onClick={() => setSelectedPlayerId(player.id)}
+                      >
+                        <TableCell className="font-semibold text-slate-900">{player.nombre}</TableCell>
+                        <TableCell>
+                          <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                            {player.genero === "femenino" ? "F" : "M"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-3 h-3 ${
+                                  star <= player.calificacion
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-slate-300"
+                                }`}
+                              />
+                            ))}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPlayerId(player.id);
+                            }}
+                          >
+                            <TrendingUp className="w-3 h-3 mr-1" />
+                            Ver
+                          </Button>
+                        </TableCell>
+                        {isAdmin && (
+                          <TableCell>
+                            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(player)}
+                                className="text-xs"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDelete(player.id)}
+                                className="text-xs"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Stats Panel Overlay */}
+        {selectedPlayerId && (
+          <div className="fixed inset-0 z-50 flex">
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/50"
+              onClick={() => {
+                setSelectedPlayerId(null);
+                setComparisonPlayerIds([]);
+              }}
+            />
+            
+            {/* Sidebar + Stats Panel */}
+            <div className="relative flex h-full w-full max-w-4xl ml-auto">
+              {/* Player List Sidebar */}
+              <div className="w-64 h-full bg-white shadow-xl">
+                <PlayerListSidebar
+                  players={sidebarFilteredPlayers}
+                  selectedPlayerId={selectedPlayerId}
+                  comparisonPlayerIds={comparisonPlayerIds}
+                  onSelectPlayer={setSelectedPlayerId}
+                  onToggleComparison={handleToggleComparison}
+                  searchTerm={sidebarSearchTerm}
+                  onSearchChange={setSidebarSearchTerm}
+                />
+              </div>
+              
+              {/* Stats Panel */}
+              <div className="flex-1 h-full bg-white shadow-xl overflow-hidden">
+                <PlayerStatsPanel
+                  players={players}
+                  selectedPlayerId={selectedPlayerId}
+                  comparisonPlayerIds={comparisonPlayerIds}
+                  onSelectPlayer={setSelectedPlayerId}
+                  onToggleComparison={handleToggleComparison}
+                  onClose={() => {
+                    setSelectedPlayerId(null);
+                    setComparisonPlayerIds([]);
+                  }}
+                  tournaments={tournaments}
+                  teams={teams}
+                  matches={matches}
+                />
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
