@@ -100,7 +100,7 @@ export default function Layout({ children, currentPageName }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="w-16 h-16 border-4 border-slate-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -108,15 +108,15 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className={`min-h-screen flex w-full ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <style>{`
           :root {
-            --primary: 15 23 42;
+            --primary: ${darkMode ? '59 130 246' : '15 23 42'};
             --primary-foreground: 255 255 255;
           }
         `}</style>
         
-        <Sidebar className="border-r border-gray-200 bg-white">
+        <Sidebar className={`border-r ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
           <SidebarHeader className="border-b border-gray-200 p-6">
             <div className="flex items-center gap-3">
               <img 
