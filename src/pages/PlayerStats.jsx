@@ -257,13 +257,13 @@ export default function PlayerStats() {
   const PlayerCard = ({ player }) => {
     const stats = player.stats;
     return (
-      <Card className="border border-slate-200 hover:shadow-md transition-shadow">
-        <CardHeader className="bg-slate-50 border-b border-slate-200 pb-3">
+      <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow shadow-sm">
+        <CardHeader className="bg-white border-b border-slate-100 pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-bold text-slate-900">
+            <CardTitle className="text-base font-bold text-slate-800">
               {player.nombre}
             </CardTitle>
-            <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800 text-xs" : "bg-blue-100 text-blue-800 text-xs"}>
+            <Badge className={player.genero === "femenino" ? "bg-pink-50 text-pink-700 text-xs" : "bg-blue-50 text-blue-700 text-xs"}>
               {player.genero === "femenino" ? "F" : "M"}
             </Badge>
           </div>
@@ -271,35 +271,35 @@ export default function PlayerStats() {
         <CardContent className="pt-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-slate-600" />
+              <Trophy className="w-4 h-4 text-slate-500" />
               <div>
-                <p className="text-xs text-slate-500">Torneos</p>
-                <p className="text-lg font-bold text-slate-900">{stats.torneosParticipados}</p>
+                <p className="text-xs text-slate-400">Torneos</p>
+                <p className="text-lg font-bold text-slate-800">{stats.torneosParticipados}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Award className="w-4 h-4 text-amber-600" />
+              <Award className="w-4 h-4 text-amber-500" />
               <div>
-                <p className="text-xs text-slate-500">Campeonatos</p>
-                <p className="text-lg font-bold text-slate-900">{stats.campeonatos}</p>
+                <p className="text-xs text-slate-400">Campeonatos</p>
+                <p className="text-lg font-bold text-slate-800">{stats.campeonatos}</p>
               </div>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-200">
+          <div className="pt-3 border-t border-slate-100">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-600">Partidos Jugados</span>
-                <span className="font-semibold text-slate-900 text-sm">{stats.partidosJugados}</span>
+                <span className="text-xs text-slate-500">Partidos Jugados</span>
+                <span className="font-semibold text-slate-800 text-sm">{stats.partidosJugados}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-600">Partidos Ganados</span>
-                <span className="font-semibold text-green-700 text-sm">{stats.partidosGanados}</span>
+                <span className="text-xs text-slate-500">Partidos Ganados</span>
+                <span className="font-semibold text-green-600 text-sm">{stats.partidosGanados}</span>
               </div>
               {stats.partidosJugados > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-slate-600">Win Rate</span>
-                  <Badge className="bg-green-100 text-green-800 text-xs">
+                  <span className="text-xs text-slate-500">Win Rate</span>
+                  <Badge className="bg-green-50 text-green-700 text-xs">
                     {stats.winRate.toFixed(0)}%
                   </Badge>
                 </div>
@@ -307,17 +307,17 @@ export default function PlayerStats() {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-200">
+          <div className="pt-3 border-t border-slate-100">
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-600">Sets</span>
-                <span className="font-semibold text-slate-900">
+                <span className="text-slate-500">Sets</span>
+                <span className="font-semibold text-slate-800">
                   {stats.setsAFavor} - {stats.setsEnContra}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-600">Puntos</span>
-                <span className="font-semibold text-slate-900">
+                <span className="text-slate-500">Puntos</span>
+                <span className="font-semibold text-slate-800">
                   {stats.puntosAFavor} - {stats.puntosEnContra}
                 </span>
               </div>
