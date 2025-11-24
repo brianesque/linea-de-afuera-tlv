@@ -293,7 +293,7 @@ export default function Home({ darkMode = false }) {
 
         {enCurso.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-slate-900 mb-3">Torneos en Curso</h2>
+            <h2 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Torneos en Curso</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {enCurso.map((tournament) => (
                 <TournamentCard key={tournament.id} tournament={tournament} />
@@ -303,7 +303,7 @@ export default function Home({ darkMode = false }) {
         )}
 
         <div className="mb-4">
-          <h2 className="text-xl font-bold text-slate-900 mb-3">Torneos Pasados</h2>
+          <h2 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Torneos Pasados</h2>
         </div>
 
         {isLoading ? (
