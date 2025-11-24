@@ -20,22 +20,22 @@ export default function PlayerListSidebar({
   const isInComparison = (playerId) => comparisonPlayerIds.includes(playerId);
 
   return (
-    <Card className="border border-slate-200 h-full flex flex-col">
-      <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
-        <CardTitle className="text-sm font-bold flex items-center gap-2">
-          <Users className="w-4 h-4 text-slate-600" />
+    <Card className="border border-slate-200 h-full flex flex-col bg-white">
+      <CardHeader className="bg-white border-b border-slate-100 py-3">
+        <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-700">
+          <Users className="w-4 h-4 text-slate-500" />
           Jugadores ({players.length})
         </CardTitle>
       </CardHeader>
       
-      <div className="p-3 border-b border-slate-200">
+      <div className="p-3 border-b border-slate-100">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             placeholder="Buscar..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9 text-sm h-8"
+            className="pl-9 text-sm h-8 border-slate-200"
           />
         </div>
       </div>
@@ -48,20 +48,20 @@ export default function PlayerListSidebar({
               className={`p-2 rounded-lg cursor-pointer transition-all ${
                 isSelected(player.id)
                   ? 'bg-slate-700 text-white'
-                  : 'hover:bg-slate-100'
+                  : 'hover:bg-slate-50'
               }`}
               onClick={() => onSelectPlayer(player.id)}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <p className={`text-xs font-semibold truncate ${isSelected(player.id) ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-xs font-semibold truncate ${isSelected(player.id) ? 'text-white' : 'text-slate-800'}`}>
                     {player.nombre}
                   </p>
                   <Badge 
                     className={`text-[10px] px-1 py-0 shrink-0 ${
                       player.genero === "femenino" 
-                        ? isSelected(player.id) ? "bg-pink-200 text-pink-900" : "bg-pink-100 text-pink-800"
-                        : isSelected(player.id) ? "bg-blue-200 text-blue-900" : "bg-blue-100 text-blue-800"
+                        ? isSelected(player.id) ? "bg-pink-200 text-pink-900" : "bg-pink-50 text-pink-700"
+                        : isSelected(player.id) ? "bg-blue-200 text-blue-900" : "bg-blue-50 text-blue-700"
                     }`}
                   >
                     {player.genero === "femenino" ? "F" : "M"}
@@ -74,7 +74,7 @@ export default function PlayerListSidebar({
                           className={`w-2.5 h-2.5 ${
                             star <= player.calificacion
                               ? "fill-yellow-400 text-yellow-400"
-                              : isSelected(player.id) ? "text-slate-500" : "text-slate-300"
+                              : isSelected(player.id) ? "text-slate-500" : "text-slate-200"
                           }`}
                         />
                       ))}
