@@ -100,10 +100,10 @@ export default function Home({ darkMode = false }) {
 
   const getEstadoBadge = (estado) => {
     const estados = {
-      configuracion: { label: 'Configuración', class: 'bg-amber-100 text-amber-800' },
-      equipos_armados: { label: 'Equipos Armados', class: 'bg-blue-100 text-blue-800' },
-      en_curso: { label: 'En Curso', class: 'bg-green-100 text-green-800' },
-      finalizado: { label: 'Finalizado', class: 'bg-slate-100 text-slate-800' }
+      configuracion: { label: 'Configuración', class: 'bg-amber-50 text-amber-700' },
+      equipos_armados: { label: 'Equipos Armados', class: 'bg-blue-50 text-blue-700' },
+      en_curso: { label: 'En Curso', class: 'bg-green-50 text-green-700' },
+      finalizado: { label: 'Finalizado', class: 'bg-slate-100 text-slate-600' }
     };
     return estados[estado] || estados.configuracion;
   };
