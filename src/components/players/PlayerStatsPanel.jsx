@@ -443,69 +443,69 @@ export default function PlayerStatsPanel({
           </div>
 
           {/* Detailed Stats */}
-          <div className="space-y-1 border-t pt-3">
+          <div className="space-y-1 border-t border-slate-100 pt-3">
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-600">Partidos Jugados</span>
-              <span className="text-xs font-bold text-slate-900">{selectedStats?.partidosJugados || 0}</span>
+              <span className="text-xs text-slate-500">Partidos Jugados</span>
+              <span className="text-xs font-bold text-slate-800">{selectedStats?.partidosJugados || 0}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-600">Partidos Ganados</span>
-              <span className="text-xs font-bold text-green-700">{selectedStats?.partidosGanados || 0}</span>
+              <span className="text-xs text-slate-500">Partidos Ganados</span>
+              <span className="text-xs font-bold text-green-600">{selectedStats?.partidosGanados || 0}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-600">Partidos Perdidos</span>
-              <span className="text-xs font-bold text-red-700">{selectedStats?.partidosPerdidos || 0}</span>
+              <span className="text-xs text-slate-500">Partidos Perdidos</span>
+              <span className="text-xs font-bold text-red-500">{selectedStats?.partidosPerdidos || 0}</span>
             </div>
-            <div className="flex justify-between py-1 bg-green-50 px-2 rounded">
-              <span className="text-xs text-slate-600">Win Rate</span>
-              <Badge className="bg-green-100 text-green-800 text-xs">
+            <div className="flex justify-between py-1.5 bg-green-50/70 px-2 rounded border border-green-100">
+              <span className="text-xs text-slate-500">Win Rate</span>
+              <Badge className="bg-green-500 text-white text-xs">
                 {(selectedStats?.winRate || 0).toFixed(0)}%
               </Badge>
             </div>
           </div>
 
-          <div className="space-y-1 border-t pt-3">
+          <div className="space-y-1 border-t border-slate-100 pt-3">
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-600">Sets a Favor</span>
-              <span className="text-xs font-bold text-slate-900">{selectedStats?.setsAFavor || 0}</span>
+              <span className="text-xs text-slate-500">Sets a Favor</span>
+              <span className="text-xs font-bold text-slate-800">{selectedStats?.setsAFavor || 0}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-600">Sets en Contra</span>
-              <span className="text-xs font-bold text-slate-900">{selectedStats?.setsEnContra || 0}</span>
+              <span className="text-xs text-slate-500">Sets en Contra</span>
+              <span className="text-xs font-bold text-slate-800">{selectedStats?.setsEnContra || 0}</span>
             </div>
-            <div className="flex justify-between py-1 bg-slate-50 px-2 rounded">
-              <span className="text-xs text-slate-600">Diferencia Sets</span>
-              <span className={`text-xs font-bold ${(selectedStats?.diferenciaSets || 0) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+            <div className="flex justify-between py-1.5 bg-slate-50 px-2 rounded border border-slate-100">
+              <span className="text-xs text-slate-500">Diferencia Sets</span>
+              <span className={`text-xs font-bold ${(selectedStats?.diferenciaSets || 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                 {(selectedStats?.diferenciaSets || 0) > 0 ? '+' : ''}{selectedStats?.diferenciaSets || 0}
               </span>
             </div>
           </div>
 
-          <div className="space-y-1 border-t pt-3">
+          <div className="space-y-1 border-t border-slate-100 pt-3">
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-600">Puntos a Favor</span>
-              <span className="text-xs font-bold text-slate-900">{selectedStats?.puntosAFavor || 0}</span>
+              <span className="text-xs text-slate-500">Puntos a Favor</span>
+              <span className="text-xs font-bold text-slate-800">{selectedStats?.puntosAFavor || 0}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-600">Puntos en Contra</span>
-              <span className="text-xs font-bold text-slate-900">{selectedStats?.puntosEnContra || 0}</span>
+              <span className="text-xs text-slate-500">Puntos en Contra</span>
+              <span className="text-xs font-bold text-slate-800">{selectedStats?.puntosEnContra || 0}</span>
             </div>
-            <div className="flex justify-between py-1 bg-slate-50 px-2 rounded">
-              <span className="text-xs text-slate-600">Diferencia Puntos</span>
-              <span className={`text-xs font-bold ${(selectedStats?.diferenciaPuntos || 0) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+            <div className="flex justify-between py-1.5 bg-slate-50 px-2 rounded border border-slate-100">
+              <span className="text-xs text-slate-500">Diferencia Puntos</span>
+              <span className={`text-xs font-bold ${(selectedStats?.diferenciaPuntos || 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                 {(selectedStats?.diferenciaPuntos || 0) > 0 ? '+' : ''}{selectedStats?.diferenciaPuntos || 0}
               </span>
             </div>
           </div>
 
-          <div className="space-y-1 border-t pt-3">
+          <div className="space-y-1 border-t border-slate-100 pt-3">
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-600">Prom. Puntos/Partido</span>
-              <span className="text-xs font-bold text-slate-900">{selectedStats?.promedioPuntosPorPartido || 0}</span>
+              <span className="text-xs text-slate-500">Prom. Puntos/Partido</span>
+              <span className="text-xs font-bold text-slate-800">{selectedStats?.promedioPuntosPorPartido || 0}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-600">Prom. Sets/Partido</span>
-              <span className="text-xs font-bold text-slate-900">{selectedStats?.promedioSetsPorPartido || 0}</span>
+              <span className="text-xs text-slate-500">Prom. Sets/Partido</span>
+              <span className="text-xs font-bold text-slate-800">{selectedStats?.promedioSetsPorPartido || 0}</span>
             </div>
           </div>
 
