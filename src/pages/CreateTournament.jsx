@@ -159,12 +159,12 @@ export default function CreateTournament() {
           )}
 
           {/* Información Básica */}
-          <Card className={`border ${isMissingRequiredFields ? 'border-red-300' : 'border-slate-200'}`}>
-            <CardHeader className={`${isMissingRequiredFields ? 'bg-red-50' : 'bg-slate-50'} border-b border-slate-200 py-3`}>
-              <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm md:text-base">
+          <Card className={`border shadow-sm ${isMissingRequiredFields ? 'border-red-200 bg-white' : 'border-slate-200 bg-white'}`}>
+            <CardHeader className={`${isMissingRequiredFields ? 'bg-red-50' : 'bg-white'} border-b border-slate-100 py-3`}>
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm md:text-base text-slate-700">
                 <span>Información Básica</span>
                 {isMissingRequiredFields && (
-                  <span className="text-xs font-normal text-red-600 bg-red-100 px-2 py-1 rounded">
+                  <span className="text-xs font-normal text-red-600 bg-red-50 px-2 py-1 rounded">
                     ⚠️ Faltan campos
                   </span>
                 )}
