@@ -109,7 +109,7 @@ export default function Layout({ children, currentPageName }) {
           <SidebarHeader className="border-b border-gray-200 p-6">
             <div className="flex items-center gap-3">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/925008ae7_5aa6b193-594f-4006-9d72-843f1a7cc4a5.png" 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/eeac2486c_logo.png" 
                 alt="Logo" 
                 className="w-10 h-10 rounded-xl object-cover shadow-sm"
               />
