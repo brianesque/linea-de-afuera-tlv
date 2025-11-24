@@ -134,10 +134,10 @@ export default function CreateTournament() {
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
           {/* Template Selector */}
           {templates.length > 0 && (
-            <Card className="border border-slate-200">
-              <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
-                <CardTitle className="flex items-center gap-2 text-sm md:text-base">
-                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+            <Card className="border border-slate-200 bg-white shadow-sm">
+              <CardHeader className="bg-white border-b border-slate-100 py-3">
+                <CardTitle className="flex items-center gap-2 text-sm md:text-base text-slate-700">
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-slate-500" />
                   Usar Plantilla
                 </CardTitle>
               </CardHeader>
