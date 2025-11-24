@@ -65,7 +65,7 @@ export default function Layout({ children, currentPageName }) {
       title: "Jugadores",
       url: createPageUrl("Players"),
       icon: Users,
-      show: isAdmin
+      show: true
     },
     {
       title: "Estadísticas",

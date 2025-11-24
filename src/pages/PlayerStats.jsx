@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -417,13 +416,61 @@ export default function PlayerStats() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gradient-to-r from-slate-100 to-slate-50">
-                      <TableHead className="font-bold">Jugador</TableHead>
+                      <TableHead 
+                        className="font-bold cursor-pointer hover:bg-slate-200"
+                        onClick={() => setSortBy("nombre")}
+                      >
+                        <div className="flex items-center">
+                          Jugador
+                          {sortBy === "nombre" && <ArrowUpDown className="w-3 h-3 ml-1" />}
+                        </div>
+                      </TableHead>
                       <TableHead className="font-bold">Género</TableHead>
-                      <TableHead className="font-bold text-center">Campeonatos</TableHead>
-                      <TableHead className="font-bold text-center">Torneos</TableHead>
-                      <TableHead className="font-bold text-center">Partidos</TableHead>
-                      <TableHead className="font-bold text-center">Ganados</TableHead>
-                      <TableHead className="font-bold text-center">Win Rate</TableHead>
+                      <TableHead 
+                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        onClick={() => setSortBy("campeonatos")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Campeonatos
+                          {sortBy === "campeonatos" && <ArrowUpDown className="w-3 h-3 ml-1" />}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        onClick={() => setSortBy("torneos")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Torneos
+                          {sortBy === "torneos" && <ArrowUpDown className="w-3 h-3 ml-1" />}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        onClick={() => setSortBy("partidos")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Partidos
+                          {sortBy === "partidos" && <ArrowUpDown className="w-3 h-3 ml-1" />}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        onClick={() => setSortBy("ganados")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Ganados
+                          {sortBy === "ganados" && <ArrowUpDown className="w-3 h-3 ml-1" />}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        onClick={() => setSortBy("winrate")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Win Rate
+                          {sortBy === "winrate" && <ArrowUpDown className="w-3 h-3 ml-1" />}
+                        </div>
+                      </TableHead>
                       <TableHead className="font-bold text-center">Sets</TableHead>
                       <TableHead className="font-bold text-center">Puntos</TableHead>
                     </TableRow>
