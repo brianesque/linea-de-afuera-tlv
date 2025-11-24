@@ -179,15 +179,15 @@ export default function Home() {
   return (
     <div className="min-h-screen p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 p-8 md:p-14 mb-4 shadow-lg min-h-[180px] md:min-h-[220px]">
-          <div className="absolute inset-0 bg-[url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/925008ae7_5aa6b193-594f-4006-9d72-843f1a7cc4a5.png')] opacity-30 bg-cover bg-[center_top_30%]" />
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 p-8 md:p-14 mb-4 shadow-lg min-h-[180px] md:min-h-[280px]">
+          {/* Mobile background */}
+          <div className="absolute inset-0 bg-[url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/925008ae7_5aa6b193-594f-4006-9d72-843f1a7cc4a5.png')] opacity-30 bg-cover bg-[center_top_30%] md:hidden" />
+          {/* Desktop background */}
+          <div className="hidden md:block absolute inset-0 bg-[url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/f2c0f66f7_Screenshot2025-11-24at233015.png')] opacity-40 bg-cover bg-center" />
           <div className="relative z-10">
             <h1 className="text-lg md:text-2xl font-bold text-white mb-1">
               Línea De Afuera - TLV
             </h1>
-            <p className="text-xs md:text-sm text-white/90 max-w-2xl">
-              {isAdmin ? "Organiza torneos de beach vóley" : "Consulta torneos y estadísticas"}
-            </p>
           </div>
         </div>
 
