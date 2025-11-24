@@ -297,12 +297,12 @@ export default function Players() {
   );
 
   return (
-    <div className="min-h-screen p-3 md:p-6">
+    <div className="min-h-screen p-3 md:p-6 bg-slate-50">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Jugadores</h1>
-            <p className="text-sm text-slate-600">Gestión de jugadores del torneo</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Jugadores</h1>
+            <p className="text-sm text-slate-500">Gestión de jugadores del torneo</p>
           </div>
           {isAdmin && (
             <div className="flex gap-2">
