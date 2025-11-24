@@ -8,9 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Star, Search, Users, LayoutGrid, List, Filter } from "lucide-react";
+import { Plus, Pencil, Trash2, Star, Search, Users, LayoutGrid, List, Filter, ArrowUpDown, ArrowUp, ArrowDown, TrendingUp, X } from "lucide-react";
 import { toast } from "sonner";
 import BulkPlayerDialog from "../components/players/BulkPlayerDialog";
+import PlayerStatsPanel from "../components/players/PlayerStatsPanel";
+import PlayerListSidebar from "../components/players/PlayerListSidebar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function Players() {
   const [user, setUser] = useState(null);
@@ -21,6 +31,11 @@ export default function Players() {
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [viewMode, setViewMode] = useState("grid");
+  const [sortBy, setSortBy] = useState("nombre");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+  const [comparisonPlayerIds, setComparisonPlayerIds] = useState([]);
+  const [sidebarSearchTerm, setSidebarSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     nombre: "",
     calificacion: 3,
@@ -46,6 +61,24 @@ export default function Players() {
   const { data: players, isLoading } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list('nombre'),
+    initialData: [],
+  });
+
+  const { data: tournaments } = useQuery({
+    queryKey: ['tournaments'],
+    queryFn: () => base44.entities.Tournament.list(),
+    initialData: [],
+  });
+
+  const { data: teams } = useQuery({
+    queryKey: ['all-teams'],
+    queryFn: () => base44.entities.Team.list(),
+    initialData: [],
+  });
+
+  const { data: matches } = useQuery({
+    queryKey: ['all-matches'],
+    queryFn: () => base44.entities.Match.list(),
     initialData: [],
   });
 
@@ -79,7 +112,7 @@ export default function Players() {
   });
 
   const filteredPlayers = useMemo(() => {
-    return players.filter(player => {
+    let filtered = players.filter(player => {
       if (searchTerm && !player.nombre.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
       }
@@ -97,7 +130,64 @@ export default function Players() {
 
       return true;
     });
-  }, [players, searchTerm, generoFilter, calificacionFilter]);
+
+    // Sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case "nombre":
+          comparison = a.nombre.localeCompare(b.nombre);
+          break;
+        case "calificacion":
+          comparison = a.calificacion - b.calificacion;
+          break;
+        case "genero":
+          comparison = (a.genero || "").localeCompare(b.genero || "");
+          break;
+        default:
+          comparison = 0;
+      }
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [players, searchTerm, generoFilter, calificacionFilter, sortBy, sortOrder]);
+
+  const sidebarFilteredPlayers = useMemo(() => {
+    if (!sidebarSearchTerm) return players;
+    return players.filter(p => 
+      p.nombre.toLowerCase().includes(sidebarSearchTerm.toLowerCase())
+    );
+  }, [players, sidebarSearchTerm]);
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+  };
+
+  const handleToggleComparison = (playerId) => {
+    setComparisonPlayerIds(prev => {
+      if (prev.includes(playerId)) {
+        return prev.filter(id => id !== playerId);
+      }
+      if (prev.length >= 3) {
+        toast.error("Máximo 3 jugadores para comparar");
+        return prev;
+      }
+      return [...prev, playerId];
+    });
+  };
+
+  const SortIcon = ({ column }) => {
+    if (sortBy !== column) return <ArrowUpDown className="w-3 h-3 ml-1 text-slate-400" />;
+    return sortOrder === "asc" 
+      ? <ArrowUp className="w-3 h-3 ml-1 text-slate-700" />
+      : <ArrowDown className="w-3 h-3 ml-1 text-slate-700" />;
+  };
 
   const resetForm = () => {
     setFormData({ nombre: "", calificacion: 3, genero: "masculino" });
