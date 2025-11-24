@@ -13,7 +13,8 @@ export default function PlayerListSidebar({
   onSelectPlayer,
   onToggleComparison,
   searchTerm,
-  onSearchChange
+  onSearchChange,
+  isAdmin = false
 }) {
   const isSelected = (playerId) => playerId === selectedPlayerId;
   const isInComparison = (playerId) => comparisonPlayerIds.includes(playerId);
@@ -66,18 +67,20 @@ export default function PlayerListSidebar({
                     >
                       {player.genero === "femenino" ? "F" : "M"}
                     </Badge>
-                    <div className="flex items-center">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-2.5 h-2.5 ${
-                            star <= player.calificacion
-                              ? "fill-yellow-400 text-yellow-400"
-                              : isSelected(player.id) ? "text-slate-500" : "text-slate-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
+                    {isAdmin && (
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-2.5 h-2.5 ${
+                              star <= player.calificacion
+                                ? "fill-yellow-400 text-yellow-400"
+                                : isSelected(player.id) ? "text-slate-500" : "text-slate-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 {isInComparison(player.id) && (

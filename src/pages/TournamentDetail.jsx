@@ -6,11 +6,12 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Calendar, Trophy, DollarSign, Play, User, Settings, Trash2 } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Trophy, DollarSign, Play, User, Settings, Trash2, TrendingUp, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import DeleteTournamentDialog from "@/components/home/DeleteTournamentDialog";
 import TeamsGrid from "../components/results/TeamsGrid";
@@ -20,6 +21,8 @@ import FinishTournamentDialog from "../components/results/FinishTournamentDialog
 import PlayoffDialog from "../components/results/PlayoffDialog";
 import TournamentChat from "../components/tournament/TournamentChat";
 import TournamentComments from "../components/tournament/TournamentComments";
+import PlayerStatsPanel from "../components/players/PlayerStatsPanel";
+import PlayerListSidebar from "../components/players/PlayerListSidebar";
 
 export default function TournamentDetail() {
   const navigate = useNavigate();
@@ -237,6 +240,49 @@ export default function TournamentDetail() {
 
   const showChat = tournament.estado === 'en_curso' || tournament.estado === 'equipos_armados' || tournament.estado === 'configuracion';
   const showComments = tournament.estado === 'finalizado';
+
+  // State for player stats panel
+  const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+  const [comparisonPlayerIds, setComparisonPlayerIds] = useState([]);
+  const [sidebarSearchTerm, setSidebarSearchTerm] = useState("");
+
+  const { data: allTeams } = useQuery({
+    queryKey: ['all-teams'],
+    queryFn: () => base44.entities.Team.list(),
+    initialData: [],
+  });
+
+  const { data: allMatches } = useQuery({
+    queryKey: ['all-matches'],
+    queryFn: () => base44.entities.Match.list(),
+    initialData: [],
+  });
+
+  const { data: allTournaments } = useQuery({
+    queryKey: ['all-tournaments'],
+    queryFn: () => base44.entities.Tournament.list(),
+    initialData: [],
+  });
+
+  const sidebarFilteredPlayers = useMemo(() => {
+    if (!sidebarSearchTerm) return participantes;
+    return participantes.filter(p => 
+      p.nombre.toLowerCase().includes(sidebarSearchTerm.toLowerCase())
+    );
+  }, [participantes, sidebarSearchTerm]);
+
+  const handleToggleComparison = (playerId) => {
+    setComparisonPlayerIds(prev => {
+      if (prev.includes(playerId)) {
+        return prev.filter(id => id !== playerId);
+      }
+      if (prev.length >= 3) {
+        toast.error("Máximo 3 jugadores para comparar");
+        return prev;
+      }
+      return [...prev, playerId];
+    });
+  };
 
   return (
     <div className="min-h-screen p-3 md:p-6">
@@ -525,10 +571,14 @@ export default function TournamentDetail() {
                     {participantes.map((player) => {
                       const isChampion = winnerPlayerIds.includes(player.id);
                       return (
-                        <Card key={player.id} className={`border ${isChampion ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50' : 'border-purple-200'}`}>
+                        <Card 
+                          key={player.id} 
+                          className={`border cursor-pointer hover:shadow-md transition-shadow ${isChampion ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50' : 'border-purple-200'}`}
+                          onClick={() => setSelectedPlayerId(player.id)}
+                        >
                           <CardContent className="pt-4">
                             <div className="flex items-center justify-between">
-                              <div>
+                              <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <p className="font-semibold text-gray-900">{player.nombre}</p>
                                   {isChampion && <Trophy className="w-5 h-5 text-yellow-500" />}
@@ -537,6 +587,18 @@ export default function TournamentDetail() {
                                   {player.genero === "femenino" ? "Femenino" : "Masculino"}
                                 </p>
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs text-slate-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedPlayerId(player.id);
+                                }}
+                              >
+                                <TrendingUp className="w-3 h-3 mr-1" />
+                                Stats
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -546,6 +608,52 @@ export default function TournamentDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Stats Panel Overlay */}
+            {selectedPlayerId && (
+              <div className="fixed inset-0 z-50 flex">
+                <div 
+                  className="absolute inset-0 bg-black/50"
+                  onClick={() => {
+                    setSelectedPlayerId(null);
+                    setComparisonPlayerIds([]);
+                  }}
+                />
+                
+                <div className="relative flex h-full w-full max-w-4xl ml-auto">
+                  <div className="w-64 h-full bg-white shadow-xl">
+                    <PlayerListSidebar
+                      players={sidebarFilteredPlayers}
+                      selectedPlayerId={selectedPlayerId}
+                      comparisonPlayerIds={comparisonPlayerIds}
+                      onSelectPlayer={setSelectedPlayerId}
+                      onToggleComparison={handleToggleComparison}
+                      searchTerm={sidebarSearchTerm}
+                      onSearchChange={setSidebarSearchTerm}
+                      isAdmin={isAdmin}
+                    />
+                  </div>
+                  
+                  <div className="flex-1 h-full bg-white shadow-xl overflow-hidden">
+                    <PlayerStatsPanel
+                      players={allPlayers}
+                      selectedPlayerId={selectedPlayerId}
+                      comparisonPlayerIds={comparisonPlayerIds}
+                      onSelectPlayer={setSelectedPlayerId}
+                      onToggleComparison={handleToggleComparison}
+                      onClose={() => {
+                        setSelectedPlayerId(null);
+                        setComparisonPlayerIds([]);
+                      }}
+                      tournaments={allTournaments}
+                      teams={allTeams}
+                      matches={allMatches}
+                      isAdmin={isAdmin}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           {(tournament.estado === 'equipos_armados' || tournament.estado === 'en_curso' || tournament.estado === 'finalizado') && (
