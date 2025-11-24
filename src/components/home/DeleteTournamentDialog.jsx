@@ -13,19 +13,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 
-export default function DeleteTournamentDialog({ tournamentName, onDelete }) {
+export default function DeleteTournamentDialog({ tournamentName, onDelete, children }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button
-          size="icon"
-          variant="destructive"
-          className="h-8 w-8 shadow-sm"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          title="Eliminar"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {children || (
+          <Button
+            size="icon"
+            variant="destructive"
+            className="h-8 w-8 shadow-sm"
+            title="Eliminar"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       </AlertDialogTrigger>
       <AlertDialogContent onClick={(e) => e.stopPropagation()}>
         <AlertDialogHeader>

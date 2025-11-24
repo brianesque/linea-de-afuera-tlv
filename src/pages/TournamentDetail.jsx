@@ -12,6 +12,7 @@ import { es } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import DeleteTournamentDialog from "@/components/home/DeleteTournamentDialog";
 import TeamsGrid from "../components/results/TeamsGrid";
 import MatchSchedule from "../components/results/MatchSchedule";
 import StandingsTable from "../components/results/StandingsTable";
@@ -101,11 +102,7 @@ export default function TournamentDetail() {
     },
   });
 
-  const handleDeleteTournament = () => {
-    if (window.confirm(`¿Estás seguro de eliminar el torneo "${tournament.nombre}"? Esta acción eliminará todas las estadísticas y no se puede deshacer.`)) {
-      deleteTournamentMutation.mutate(tournament.id);
-    }
-  };
+
 
   const handleTogglePlayoff = (field, value) => {
     updateTournamentMutation.mutate({
@@ -263,16 +260,20 @@ export default function TournamentDetail() {
           
           {isAdmin && (
             <div className="flex gap-2 flex-wrap">
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteTournament}
-                disabled={deleteTournamentMutation.isPending}
-                className="text-xs"
+              <DeleteTournamentDialog
+                tournamentName={tournament.nombre}
+                onDelete={() => deleteTournamentMutation.mutate(tournament.id)}
               >
-                <Trash2 className="w-3 h-3 mr-1" />
-                {deleteTournamentMutation.isPending ? "..." : "Eliminar"}
-              </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleteTournamentMutation.isPending}
+                  className="text-xs"
+                >
+                  <Trash2 className="w-3 h-3 mr-1" />
+                  {deleteTournamentMutation.isPending ? "..." : "Eliminar"}
+                </Button>
+              </DeleteTournamentDialog>
               {tournament.estado === 'configuracion' && (
                 <Button
                   size="sm"

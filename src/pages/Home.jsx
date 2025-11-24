@@ -130,16 +130,15 @@ export default function Home() {
             </div>
             
             {isAdmin && (
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+              <div 
+                className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Button
                   size="icon"
                   variant="secondary"
                   className="h-8 w-8 bg-white/90 hover:bg-white shadow-sm border border-slate-200"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`));
-                  }}
+                  onClick={() => navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`))}
                   title="Editar"
                 >
                   <Pencil className="h-4 w-4 text-slate-600" />
