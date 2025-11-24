@@ -180,7 +180,7 @@ export default function Home() {
     <div className="min-h-screen p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 p-6 md:p-10 mb-6 shadow-lg">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=1200')] opacity-10 bg-cover bg-center" />
+          <div className="absolute inset-0 bg-[url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/925008ae7_5aa6b193-594f-4006-9d72-843f1a7cc4a5.png')] opacity-30 bg-cover bg-center" />
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-3">
               <Waves className="w-7 h-7 md:w-8 md:h-8 text-white" />

@@ -108,9 +108,11 @@ export default function Layout({ children, currentPageName }) {
         <Sidebar className="border-r border-gray-200 bg-white">
           <SidebarHeader className="border-b border-gray-200 p-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center shadow-sm">
-                <Trophy className="w-6 h-6 text-white" />
-              </div>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/925008ae7_5aa6b193-594f-4006-9d72-843f1a7cc4a5.png" 
+                alt="Logo" 
+                className="w-10 h-10 rounded-xl object-cover shadow-sm"
+              />
               <div>
                 <h2 className="font-bold text-slate-900 text-lg">Línea De Afuera</h2>
                 <p className="text-xs text-slate-600 font-medium">TLV Beach Vóley</p>
