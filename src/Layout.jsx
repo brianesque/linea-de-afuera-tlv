@@ -100,7 +100,7 @@ export default function Layout({ children, currentPageName }) {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-slate-50'}`}>
         <div className="w-16 h-16 border-4 border-slate-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -108,7 +108,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className={`min-h-screen flex w-full ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen flex w-full ${darkMode ? 'bg-gray-900' : 'bg-slate-50'}`}>
         <style>{`
           :root {
             --primary: ${darkMode ? '59 130 246' : '15 23 42'};
