@@ -226,12 +226,12 @@ export default function Players() {
   };
 
   const PlayerCard = ({ player }) => (
-    <Card className="border border-slate-200 hover:shadow-md transition-shadow">
+    <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow shadow-sm">
       <CardContent className="pt-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <h3 className="font-bold text-slate-900 text-base mb-1">{player.nombre}</h3>
-            <Badge className={player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}>
+            <h3 className="font-bold text-slate-800 text-base mb-1">{player.nombre}</h3>
+            <Badge className={player.genero === "femenino" ? "bg-pink-50 text-pink-700" : "bg-blue-50 text-blue-700"}>
               {player.genero === "femenino" ? "Femenino" : "Masculino"}
             </Badge>
           </div>
@@ -245,14 +245,14 @@ export default function Players() {
                 className={`w-5 h-5 ${
                   star <= player.calificacion
                     ? "fill-yellow-400 text-yellow-400"
-                    : "text-slate-300"
+                    : "text-slate-200"
                 }`}
               />
             ))}
           </div>
         )}
 
-        <div className="flex gap-2 pt-3 border-t border-slate-200">
+        <div className="flex gap-2 pt-3 border-t border-slate-100">
           <Button
             variant="outline"
             size="sm"
@@ -260,7 +260,7 @@ export default function Players() {
               e.stopPropagation();
               setSelectedPlayerId(player.id);
             }}
-            className="flex-1 text-xs"
+            className="flex-1 text-xs border-slate-200 text-slate-600 hover:bg-slate-50"
           >
             <TrendingUp className="w-3 h-3 mr-1" />
             Estadísticas
@@ -274,7 +274,7 @@ export default function Players() {
                   e.stopPropagation();
                   handleEdit(player);
                 }}
-                className="text-xs"
+                className="text-xs border-slate-200 text-slate-500 hover:bg-slate-50"
               >
                 <Pencil className="w-3 h-3" />
               </Button>
@@ -285,7 +285,7 @@ export default function Players() {
                   e.stopPropagation();
                   handleDelete(player.id);
                 }}
-                className="text-xs"
+                className="text-xs bg-red-500 hover:bg-red-600"
               >
                 <Trash2 className="w-3 h-3" />
               </Button>
