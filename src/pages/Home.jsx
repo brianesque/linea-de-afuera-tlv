@@ -146,15 +146,10 @@ export default function Home() {
                 >
                   <Pencil className="h-4 w-4 text-slate-600" />
                 </Button>
-                <Button
-                  size="icon"
-                  variant="destructive"
-                  className="h-8 w-8 shadow-sm"
-                  onClick={(e) => handleDeleteTournament(e, tournament)}
-                  title="Eliminar"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <DeleteTournamentDialog 
+                  tournamentName={tournament.nombre}
+                  onDelete={() => deleteTournamentMutation.mutate(tournament.id)}
+                />
               </div>
             )}
           </CardHeader>

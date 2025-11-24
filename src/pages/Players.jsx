@@ -18,6 +18,7 @@ export default function Players() {
   const [generoFilter, setGeneroFilter] = useState("todos");
   const [calificacionFilter, setCalificacionFilter] = useState("todos");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [viewMode, setViewMode] = useState("grid");
   const [formData, setFormData] = useState({
@@ -189,7 +190,16 @@ export default function Players() {
           </div>
           {isAdmin && (
             <div className="flex gap-2">
-              <BulkPlayerDialog />
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setIsBulkDialogOpen(true)}
+                className="bg-white hover:bg-slate-50 text-slate-700 border-slate-300 text-xs"
+              >
+                <Users className="w-3 h-3 mr-1" />
+                Carga Masiva
+              </Button>
+              <BulkPlayerDialog open={isBulkDialogOpen} onOpenChange={setIsBulkDialogOpen} />
               <Dialog open={isDialogOpen} onOpenChange={(open) => {
                 setIsDialogOpen(open);
                 if (!open) resetForm();
