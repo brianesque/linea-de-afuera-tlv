@@ -465,9 +465,9 @@ export default function PlayerStats() {
                           {sortBy === "nombre" && <ArrowUpDown className="w-3 h-3 ml-1" />}
                         </div>
                       </TableHead>
-                      <TableHead className="font-bold">Género</TableHead>
+                      <TableHead className="font-semibold text-slate-600">Género</TableHead>
                       <TableHead 
-                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        className="font-semibold text-slate-600 text-center cursor-pointer hover:bg-slate-100"
                         onClick={() => setSortBy("campeonatos")}
                       >
                         <div className="flex items-center justify-center">
@@ -476,7 +476,7 @@ export default function PlayerStats() {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        className="font-semibold text-slate-600 text-center cursor-pointer hover:bg-slate-100"
                         onClick={() => setSortBy("torneos")}
                       >
                         <div className="flex items-center justify-center">
@@ -485,7 +485,7 @@ export default function PlayerStats() {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        className="font-semibold text-slate-600 text-center cursor-pointer hover:bg-slate-100"
                         onClick={() => setSortBy("partidos")}
                       >
                         <div className="flex items-center justify-center">
@@ -494,7 +494,7 @@ export default function PlayerStats() {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        className="font-semibold text-slate-600 text-center cursor-pointer hover:bg-slate-100"
                         onClick={() => setSortBy("ganados")}
                       >
                         <div className="flex items-center justify-center">
@@ -503,7 +503,7 @@ export default function PlayerStats() {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="font-bold text-center cursor-pointer hover:bg-slate-200"
+                        className="font-semibold text-slate-600 text-center cursor-pointer hover:bg-slate-100"
                         onClick={() => setSortBy("winrate")}
                       >
                         <div className="flex items-center justify-center">
@@ -511,8 +511,8 @@ export default function PlayerStats() {
                           {sortBy === "winrate" && <ArrowUpDown className="w-3 h-3 ml-1" />}
                         </div>
                       </TableHead>
-                      <TableHead className="font-bold text-center">Sets</TableHead>
-                      <TableHead className="font-bold text-center">Puntos</TableHead>
+                      <TableHead className="font-semibold text-slate-600 text-center">Sets</TableHead>
+                      <TableHead className="font-semibold text-slate-600 text-center">Puntos</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
