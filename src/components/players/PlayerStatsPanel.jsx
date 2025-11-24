@@ -605,9 +605,9 @@ export default function PlayerStatsPanel({
 
           {/* Tournament History */}
           {playerTournamentHistory.length > 0 && (
-            <div className="border-t pt-4 mt-4">
-              <h4 className="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
+            <div className="border-t border-slate-100 pt-4 mt-4">
+              <h4 className="font-bold text-slate-700 text-sm mb-3 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-slate-500" />
                 Historial de Torneos ({playerTournamentHistory.length})
               </h4>
               
@@ -615,33 +615,33 @@ export default function PlayerStatsPanel({
                 {playerTournamentHistory.map((torneo, idx) => (
                   <div 
                     key={idx} 
-                    className={`p-3 rounded-lg border ${torneo.esCampeon ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200'}`}
+                    className={`p-3 rounded-lg border ${torneo.esCampeon ? 'bg-amber-50/70 border-amber-200' : 'bg-white border-slate-200'}`}
                   >
                     {/* Tournament Header */}
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1 min-w-0">
-                        <h5 className="font-bold text-slate-900 text-xs truncate">{torneo.nombre}</h5>
-                        <p className="text-[10px] text-slate-500">
+                        <h5 className="font-bold text-slate-800 text-xs truncate">{torneo.nombre}</h5>
+                        <p className="text-[10px] text-slate-400">
                           {format(new Date(torneo.fecha), "d MMM yyyy", { locale: es })}
                         </p>
                       </div>
                       <Badge className={`text-[10px] ${
                         torneo.esCampeon ? 'bg-amber-500 text-white' :
-                        torneo.faseAlcanzada === 'Final' ? 'bg-purple-100 text-purple-800' :
-                        torneo.faseAlcanzada === 'Semifinal' ? 'bg-blue-100 text-blue-800' :
-                        'bg-slate-100 text-slate-700'
+                        torneo.faseAlcanzada === 'Final' ? 'bg-purple-50 text-purple-700' :
+                        torneo.faseAlcanzada === 'Semifinal' ? 'bg-blue-50 text-blue-700' :
+                        'bg-slate-100 text-slate-600'
                       }`}>
                         {torneo.faseAlcanzada}
                       </Badge>
                     </div>
 
                     {/* Team Info */}
-                    <div className="mb-2 p-2 bg-slate-50 rounded text-[10px]">
+                    <div className="mb-2 p-2 bg-slate-50/70 rounded text-[10px] border border-slate-100">
                       <p className="text-slate-600 mb-1">
                         <span className="font-medium">Equipo:</span> {torneo.equipoNombre}
                       </p>
                       {torneo.compañeros.length > 0 && (
-                        <p className="text-slate-500">
+                        <p className="text-slate-400">
                           <span className="font-medium">Compañeros:</span> {torneo.compañeros.join(', ')}
                         </p>
                       )}
@@ -649,24 +649,24 @@ export default function PlayerStatsPanel({
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="p-1.5 bg-slate-100 rounded">
-                        <p className="text-sm font-bold text-slate-900">{torneo.partidosGanados}/{torneo.partidosJugados}</p>
-                        <p className="text-[9px] text-slate-500">Partidos</p>
+                      <div className="p-1.5 bg-slate-50 rounded border border-slate-100">
+                        <p className="text-sm font-bold text-slate-800">{torneo.partidosGanados}/{torneo.partidosJugados}</p>
+                        <p className="text-[9px] text-slate-400">Partidos</p>
                       </div>
-                      <div className="p-1.5 bg-slate-100 rounded">
-                        <p className="text-sm font-bold text-slate-900">{torneo.setsAFavor}-{torneo.setsEnContra}</p>
-                        <p className="text-[9px] text-slate-500">Sets</p>
+                      <div className="p-1.5 bg-slate-50 rounded border border-slate-100">
+                        <p className="text-sm font-bold text-slate-800">{torneo.setsAFavor}-{torneo.setsEnContra}</p>
+                        <p className="text-[9px] text-slate-400">Sets</p>
                       </div>
-                      <div className="p-1.5 bg-green-50 rounded">
-                        <p className="text-sm font-bold text-green-700">{torneo.winRate.toFixed(0)}%</p>
-                        <p className="text-[9px] text-slate-500">Win Rate</p>
+                      <div className="p-1.5 bg-green-50/70 rounded border border-green-100">
+                        <p className="text-sm font-bold text-green-600">{torneo.winRate.toFixed(0)}%</p>
+                        <p className="text-[9px] text-slate-400">Win Rate</p>
                       </div>
                     </div>
 
                     {/* Position */}
                     <div className="mt-2 flex items-center justify-between text-[10px]">
-                      <span className="text-slate-500">Posición Final:</span>
-                      <span className="font-bold text-slate-900">
+                      <span className="text-slate-400">Posición Final:</span>
+                      <span className="font-bold text-slate-700">
                         {torneo.posicion}° de {torneo.totalEquipos}
                       </span>
                     </div>
