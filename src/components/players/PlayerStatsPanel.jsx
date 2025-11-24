@@ -377,14 +377,14 @@ export default function PlayerStatsPanel({
   }
 
   return (
-    <Card className="border border-slate-200 h-full flex flex-col">
-      <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
+    <Card className="border border-slate-200 h-full flex flex-col bg-white">
+      <CardHeader className="bg-white border-b border-slate-100 py-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-bold flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-slate-600" />
+          <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-700">
+            <TrendingUp className="w-4 h-4 text-slate-500" />
             Estadísticas
           </CardTitle>
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
+          <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-slate-600" onClick={onClose}>
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -393,11 +393,11 @@ export default function PlayerStatsPanel({
       <ScrollArea className="flex-1">
         <CardContent className="pt-4 space-y-4">
           {/* Selected Player Header */}
-          <div className="p-3 bg-slate-100 rounded-lg">
+          <div className="p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-slate-900">{selectedPlayer?.nombre}</h3>
-                <Badge className={`text-[10px] ${selectedPlayer?.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                <h3 className="font-bold text-slate-800">{selectedPlayer?.nombre}</h3>
+                <Badge className={`text-[10px] ${selectedPlayer?.genero === "femenino" ? "bg-pink-50 text-pink-700" : "bg-blue-50 text-blue-700"}`}>
                   {selectedPlayer?.genero === "femenino" ? "F" : "M"}
                 </Badge>
               </div>
@@ -409,7 +409,7 @@ export default function PlayerStatsPanel({
                       className={`w-3 h-3 ${
                         star <= (selectedPlayer?.calificacion || 0)
                           ? "fill-yellow-400 text-yellow-400"
-                          : "text-slate-300"
+                          : "text-slate-200"
                       }`}
                     />
                   ))}
@@ -420,7 +420,7 @@ export default function PlayerStatsPanel({
               <Button
                 size="sm"
                 variant="outline"
-                className="mt-2 text-xs w-full"
+                className="mt-2 text-xs w-full border-slate-200 text-slate-600 hover:bg-slate-50"
                 onClick={() => onToggleComparison(selectedPlayerId)}
               >
                 + Agregar a comparación
@@ -430,15 +430,15 @@ export default function PlayerStatsPanel({
 
           {/* Main Stats */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 bg-amber-50 rounded-lg text-center">
-              <Trophy className="w-5 h-5 text-amber-600 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-slate-900">{selectedStats?.campeonatos || 0}</p>
-              <p className="text-xs text-slate-600">Campeonatos</p>
+            <div className="p-3 bg-amber-50/70 rounded-lg text-center border border-amber-100">
+              <Trophy className="w-5 h-5 text-amber-500 mx-auto mb-1" />
+              <p className="text-2xl font-bold text-slate-800">{selectedStats?.campeonatos || 0}</p>
+              <p className="text-xs text-slate-500">Campeonatos</p>
             </div>
-            <div className="p-3 bg-blue-50 rounded-lg text-center">
-              <Award className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-slate-900">{selectedStats?.torneosParticipados || 0}</p>
-              <p className="text-xs text-slate-600">Torneos</p>
+            <div className="p-3 bg-blue-50/70 rounded-lg text-center border border-blue-100">
+              <Award className="w-5 h-5 text-blue-500 mx-auto mb-1" />
+              <p className="text-2xl font-bold text-slate-800">{selectedStats?.torneosParticipados || 0}</p>
+              <p className="text-xs text-slate-500">Torneos</p>
             </div>
           </div>
 
