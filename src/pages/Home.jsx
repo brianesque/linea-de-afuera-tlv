@@ -115,14 +115,14 @@ export default function Home() {
         onClick={() => navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`))} 
         className="block relative group cursor-pointer h-full"
       >
-        <Card className={`hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 h-full shadow-sm ${darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-          <CardHeader className={`pb-3 relative ${darkMode ? 'bg-gray-750 border-b border-gray-700' : 'bg-white border-b border-slate-100'}`}>
-            <div className="flex items-start justify-between">
-              <CardTitle className={`text-base md:text-lg font-bold pr-8 ${darkMode ? 'text-white' : 'text-slate-800'}`}>
-                {tournament.nombre}
-              </CardTitle>
-              <Trophy className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-slate-400'}`} />
-            </div>
+        <Card className="hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 h-full shadow-sm bg-white border-slate-200 hover:border-slate-300">
+                <CardHeader className="pb-3 relative bg-white border-b border-slate-100">
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-base md:text-lg font-bold pr-8 text-slate-800">
+                      {tournament.nombre}
+                    </CardTitle>
+                    <Trophy className="w-5 h-5 text-slate-400" />
+                  </div>
             <div className="mt-2">
               <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${estadoBadge.class}`}>
                 {estadoBadge.label}
@@ -130,47 +130,47 @@ export default function Home() {
             </div>
 
             {isAdmin && (
-              <div 
-                className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className={`h-8 w-8 shadow-sm ${darkMode ? 'bg-gray-700/90 hover:bg-gray-600 border-gray-600' : 'bg-white hover:bg-slate-50 border-slate-200'}`}
-                  onClick={() => navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`))}
-                  title="Editar"
+                <div 
+                  className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <Pencil className={`h-4 w-4 ${darkMode ? 'text-gray-300' : 'text-slate-500'}`} />
-                </Button>
-                <DeleteTournamentDialog 
-                  tournamentName={tournament.nombre}
-                  onDelete={() => deleteTournamentMutation.mutate(tournament.id)}
-                />
-              </div>
-            )}
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-8 w-8 shadow-sm bg-white hover:bg-slate-50 border-slate-200"
+                    onClick={() => navigate(createPageUrl(`TournamentDetail?id=${tournament.id}`))}
+                    title="Editar"
+                  >
+                    <Pencil className="h-4 w-4 text-slate-500" />
+                  </Button>
+                  <DeleteTournamentDialog 
+                    tournamentName={tournament.nombre}
+                    onDelete={() => deleteTournamentMutation.mutate(tournament.id)}
+                  />
+                </div>
+              )}
           </CardHeader>
           <CardContent className="pt-3">
-            <div className="space-y-2">
-              <div className={`flex items-center gap-2 text-xs ${darkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                <Calendar className={`w-3.5 h-3.5 ${darkMode ? 'text-gray-400' : 'text-slate-400'}`} />
-                <span className="truncate">
-                  {format(new Date(tournament.fecha_inicio), "d 'de' MMMM, yyyy • HH:mm", { locale: es })}
-                </span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="truncate">
+                    {format(new Date(tournament.fecha_inicio), "d 'de' MMMM, yyyy • HH:mm", { locale: es })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <Users className="w-3.5 h-3.5 text-slate-400" />
+                  <span>
+                    {tournament.jugadores_por_equipo} jugadores por equipo
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-slate-100">
+                  <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+                    {tournament.formato === 'todos_contra_todos' ? 'Todos contra todos' : 'Grupos'}
+                  </p>
+                </div>
               </div>
-              <div className={`flex items-center gap-2 text-xs ${darkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                <Users className={`w-3.5 h-3.5 ${darkMode ? 'text-gray-400' : 'text-slate-400'}`} />
-                <span>
-                  {tournament.jugadores_por_equipo} jugadores por equipo
-                </span>
-              </div>
-              <div className={`pt-2 border-t ${darkMode ? 'border-gray-700' : 'border-slate-100'}`}>
-                <p className={`text-[10px] uppercase tracking-wider font-semibold ${darkMode ? 'text-gray-400' : 'text-slate-400'}`}>
-                  {tournament.formato === 'todos_contra_todos' ? 'Todos contra todos' : 'Grupos'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
+            </CardContent>
         </Card>
       </div>
     );
