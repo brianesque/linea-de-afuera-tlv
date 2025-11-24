@@ -177,7 +177,7 @@ export default function Home({ darkMode = false }) {
   };
 
   return (
-    <div className="min-h-screen p-3 md:p-6">
+    <div className={`min-h-screen p-3 md:p-6 ${darkMode ? 'bg-gray-900' : 'bg-slate-50'}`}>
       <div className="max-w-7xl mx-auto">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 p-8 md:p-14 mb-4 shadow-lg min-h-[180px] md:min-h-[280px]">
           {/* Mobile background */}
@@ -194,7 +194,7 @@ export default function Home({ darkMode = false }) {
         {isAdmin && (
           <div className="mb-6">
             <Link to={createPageUrl("CreateTournament")}>
-              <Button size="lg" className="bg-slate-800 text-white hover:bg-slate-700 font-semibold shadow-lg text-sm">
+              <Button size="lg" className={`font-semibold shadow-md text-sm ${darkMode ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-700 text-white hover:bg-slate-800'}`}>
                 <Plus className="w-4 h-4 mr-2" />
                 Crear Nuevo Torneo
               </Button>
@@ -203,10 +203,10 @@ export default function Home({ darkMode = false }) {
         )}
 
         {/* Filtros */}
-        <Card className="mb-6 border border-slate-200">
-          <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
-            <CardTitle className="flex items-center gap-2 text-sm md:text-base">
-              <Filter className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+        <Card className={`mb-6 shadow-sm ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-slate-200'}`}>
+          <CardHeader className={`py-3 ${darkMode ? 'bg-gray-750 border-b border-gray-700' : 'bg-white border-b border-slate-100'}`}>
+            <CardTitle className={`flex items-center gap-2 text-sm md:text-base ${darkMode ? 'text-white' : 'text-slate-700'}`}>
+              <Filter className={`w-4 h-4 md:w-5 md:h-5 ${darkMode ? 'text-gray-400' : 'text-slate-500'}`} />
               Buscar y Filtrar
             </CardTitle>
           </CardHeader>
