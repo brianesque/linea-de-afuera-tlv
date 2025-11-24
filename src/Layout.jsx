@@ -226,17 +226,17 @@ export default function Layout({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-6 py-4 lg:hidden`}>
+          <header className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-slate-200'} border-b px-6 py-4 lg:hidden`}>
             <div className="flex items-center gap-4">
-              <SidebarTrigger className={`p-2 rounded-lg transition-colors duration-200 ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-slate-100'}`} />
+              <SidebarTrigger className={`p-2 rounded-lg transition-colors duration-200 ${darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-slate-50 text-slate-600'}`} />
               <div className="flex items-center gap-2">
                 <Trophy className={`w-6 h-6 ${darkMode ? 'text-blue-400' : 'text-slate-700'}`} />
-                <h1 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Línea De Afuera</h1>
+                <h1 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>Línea De Afuera</h1>
               </div>
             </div>
           </header>
 
-          <div className={`flex-1 overflow-auto ${darkMode ? 'bg-gray-900 text-white' : ''}`}>
+          <div className={`flex-1 overflow-auto ${darkMode ? 'bg-gray-900 text-white' : 'bg-slate-50'}`}>
             {React.cloneElement(children, { darkMode })}
           </div>
         </main>
