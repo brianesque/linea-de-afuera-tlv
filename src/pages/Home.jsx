@@ -182,13 +182,6 @@ export default function Home() {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 p-6 md:p-10 mb-6 shadow-lg">
           <div className="absolute inset-0 bg-[url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/925008ae7_5aa6b193-594f-4006-9d72-843f1a7cc4a5.png')] opacity-30 bg-cover bg-[center_top_30%]" />
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-3">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6919dd394bc675994c843030/eeac2486c_logo.png" 
-                alt="Logo" 
-                className="w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover shadow-lg border-2 border-white/20"
-              />
-            </div>
             <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">
               Línea De Afuera - TLV
             </h1>
