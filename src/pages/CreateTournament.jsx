@@ -114,20 +114,20 @@ export default function CreateTournament() {
   };
 
   return (
-    <div className="min-h-screen p-3 md:p-8">
+    <div className="min-h-screen p-3 md:p-8 bg-slate-50">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 md:mb-6">
           <Button
             variant="outline"
             size="icon"
             onClick={() => navigate(createPageUrl("Home"))}
-            className="border-2 border-slate-300 hover:bg-slate-50"
+            className="border border-slate-200 hover:bg-slate-50 text-slate-600"
           >
             <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
           <div>
-            <h1 className="text-xl md:text-3xl font-bold text-slate-900">Crear Nuevo Torneo</h1>
-            <p className="text-xs md:text-sm text-slate-600">Configura los detalles</p>
+            <h1 className="text-xl md:text-3xl font-bold text-slate-800">Crear Nuevo Torneo</h1>
+            <p className="text-xs md:text-sm text-slate-500">Configura los detalles</p>
           </div>
         </div>
 
