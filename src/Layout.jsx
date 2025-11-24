@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Trophy, Users, Home, LogOut, BarChart3, Settings, Plus, Calendar } from "lucide-react";
+import { Trophy, Users, Home, LogOut, BarChart3, Settings, Plus, Calendar, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
