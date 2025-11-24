@@ -521,39 +521,39 @@ export default function PlayerStats() {
                       return (
                         <TableRow 
                           key={player.id} 
-                          className="hover:bg-slate-50 cursor-pointer"
+                          className="hover:bg-slate-50 cursor-pointer border-b border-slate-100"
                           onClick={() => setSelectedPlayerId(player.id)}
                         >
-                          <TableCell className="font-semibold text-slate-900">{player.nombre}</TableCell>
+                          <TableCell className="font-semibold text-slate-800">{player.nombre}</TableCell>
                           <TableCell>
-                            <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"}`}>
+                            <Badge className={`text-xs ${player.genero === "femenino" ? "bg-pink-50 text-pink-700" : "bg-blue-50 text-blue-700"}`}>
                               {player.genero === "femenino" ? "F" : "M"}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge className="bg-amber-100 text-amber-800">{stats.campeonatos}</Badge>
+                            <Badge className="bg-amber-50 text-amber-700">{stats.campeonatos}</Badge>
                           </TableCell>
-                          <TableCell className="text-center font-semibold">{stats.torneosParticipados}</TableCell>
-                          <TableCell className="text-center font-semibold">{stats.partidosJugados}</TableCell>
-                          <TableCell className="text-center font-semibold text-green-700">{stats.partidosGanados}</TableCell>
+                          <TableCell className="text-center font-semibold text-slate-700">{stats.torneosParticipados}</TableCell>
+                          <TableCell className="text-center font-semibold text-slate-700">{stats.partidosJugados}</TableCell>
+                          <TableCell className="text-center font-semibold text-green-600">{stats.partidosGanados}</TableCell>
                           <TableCell className="text-center">
                             {stats.partidosJugados > 0 ? (
-                              <Badge className="bg-green-100 text-green-800">
+                              <Badge className="bg-green-50 text-green-700">
                                 {stats.winRate.toFixed(0)}%
                               </Badge>
                             ) : (
-                              <span className="text-slate-400">-</span>
+                              <span className="text-slate-300">-</span>
                             )}
                           </TableCell>
                           <TableCell className="text-center text-sm">
-                            <span className="font-semibold text-slate-900">{stats.setsAFavor}</span>
-                            <span className="text-slate-500"> - </span>
-                            <span className="font-semibold text-slate-900">{stats.setsEnContra}</span>
+                            <span className="font-semibold text-slate-700">{stats.setsAFavor}</span>
+                            <span className="text-slate-400"> - </span>
+                            <span className="font-semibold text-slate-700">{stats.setsEnContra}</span>
                           </TableCell>
                           <TableCell className="text-center text-sm">
-                            <span className="font-semibold text-slate-900">{stats.puntosAFavor}</span>
-                            <span className="text-slate-500"> - </span>
-                            <span className="font-semibold text-slate-900">{stats.puntosEnContra}</span>
+                            <span className="font-semibold text-slate-700">{stats.puntosAFavor}</span>
+                            <span className="text-slate-400"> - </span>
+                            <span className="font-semibold text-slate-700">{stats.puntosEnContra}</span>
                           </TableCell>
                         </TableRow>
                       );
