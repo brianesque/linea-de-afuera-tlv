@@ -52,39 +52,37 @@ export default function PlayerListSidebar({
               }`}
               onClick={() => onSelectPlayer(player.id)}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   <p className={`text-xs font-semibold truncate ${isSelected(player.id) ? 'text-white' : 'text-slate-900'}`}>
                     {player.nombre}
                   </p>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <Badge 
-                      className={`text-[10px] px-1 py-0 ${
-                        player.genero === "femenino" 
-                          ? isSelected(player.id) ? "bg-pink-200 text-pink-900" : "bg-pink-100 text-pink-800"
-                          : isSelected(player.id) ? "bg-blue-200 text-blue-900" : "bg-blue-100 text-blue-800"
-                      }`}
-                    >
-                      {player.genero === "femenino" ? "F" : "M"}
-                    </Badge>
-                    {isAdmin && (
-                      <div className="flex items-center">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`w-2.5 h-2.5 ${
-                              star <= player.calificacion
-                                ? "fill-yellow-400 text-yellow-400"
-                                : isSelected(player.id) ? "text-slate-500" : "text-slate-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <Badge 
+                    className={`text-[10px] px-1 py-0 shrink-0 ${
+                      player.genero === "femenino" 
+                        ? isSelected(player.id) ? "bg-pink-200 text-pink-900" : "bg-pink-100 text-pink-800"
+                        : isSelected(player.id) ? "bg-blue-200 text-blue-900" : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {player.genero === "femenino" ? "F" : "M"}
+                  </Badge>
+                  {isAdmin && (
+                    <div className="flex items-center shrink-0">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-2.5 h-2.5 ${
+                            star <= player.calificacion
+                              ? "fill-yellow-400 text-yellow-400"
+                              : isSelected(player.id) ? "text-slate-500" : "text-slate-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {isInComparison(player.id) && (
-                  <div className="ml-2 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                  <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center shrink-0">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                 )}

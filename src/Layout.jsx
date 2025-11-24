@@ -65,13 +65,14 @@ export default function Layout({ children, currentPageName }) {
       title: "Jugadores",
       url: createPageUrl("Players"),
       icon: Users,
-      show: true
+      show: isAdmin
     },
     {
       title: "Estadísticas",
       url: createPageUrl("PlayerStats"),
       icon: BarChart3,
-      show: true
+      show: true,
+      badge: "Click para más"
     },
     {
       title: "Plantillas",
@@ -134,9 +135,14 @@ export default function Layout({ children, currentPageName }) {
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
-                          <item.icon className="w-5 h-5" />
-                          <span className="font-medium">{item.title}</span>
-                        </Link>
+                            <item.icon className="w-5 h-5" />
+                            <span className="font-medium">{item.title}</span>
+                            {item.badge && (
+                              <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full ml-auto">
+                                {item.badge}
+                              </span>
+                            )}
+                          </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
