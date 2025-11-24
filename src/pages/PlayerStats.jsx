@@ -329,23 +329,23 @@ export default function PlayerStats() {
   };
 
   return (
-    <div className="min-h-screen p-3 md:p-6">
+    <div className="min-h-screen p-3 md:p-6 bg-slate-50">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 md:w-7 md:h-7 text-slate-700" />
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center gap-2">
+            <BarChart3 className="w-6 h-6 md:w-7 md:h-7 text-slate-600" />
             <span>Estadísticas</span>
           </h1>
-          <p className="text-sm text-slate-600">
-            Rendimiento de jugadores · <span className="text-slate-500">Click en un jugador para ver estadísticas avanzadas</span>
+          <p className="text-sm text-slate-500">
+            Rendimiento de jugadores · <span className="text-slate-400">Click en un jugador para ver estadísticas avanzadas</span>
           </p>
         </div>
 
         {/* Filtros */}
-        <Card className="mb-4 border border-slate-200">
-          <CardHeader className="bg-slate-50 border-b border-slate-200 py-3">
-            <CardTitle className="flex items-center gap-2 text-sm md:text-base">
-              <Filter className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+        <Card className="mb-4 border border-slate-200 bg-white shadow-sm">
+          <CardHeader className="bg-white border-b border-slate-100 py-3">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-base text-slate-700">
+              <Filter className="w-4 h-4 md:w-5 md:h-5 text-slate-500" />
               Buscar y Filtrar
             </CardTitle>
           </CardHeader>
