@@ -12,9 +12,19 @@ import {
 } from "@/components/ui/table";
 
 export default function StandingsTable({ teams, matches, tournament }) {
+  // Filter only group stage matches for standings
+  const groupStageMatches = useMemo(() => {
+    return matches.filter(m => m.fase === 'fase_grupos');
+  }, [matches]);
+
+  // Get playoff matches (semifinal and final)
+  const playoffMatches = useMemo(() => {
+    return matches.filter(m => m.fase === 'semifinal' || m.fase === 'final');
+  }, [matches]);
+
   const standings = useMemo(() => {
     const stats = teams.map(team => {
-      const teamMatches = matches.filter(m => 
+      const teamMatches = groupStageMatches.filter(m => 
         (m.equipo1_id === team.id || m.equipo2_id === team.id) && m.estado === 'finalizado'
       );
 
@@ -80,7 +90,20 @@ export default function StandingsTable({ teams, matches, tournament }) {
     });
 
     return stats;
-  }, [teams, matches, tournament]);
+  }, [teams, groupStageMatches, tournament]);
+
+  // Get playoff match details
+  const getPlayoffMatchDetails = (match) => {
+    const team1 = teams.find(t => t.id === match.equipo1_id);
+    const team2 = teams.find(t => t.id === match.equipo2_id);
+    const winner = match.estado === 'finalizado' 
+      ? (match.sets_equipo1 > match.sets_equipo2 ? team1 : team2)
+      : null;
+    return { team1, team2, winner, match };
+  };
+
+  const semifinalMatches = playoffMatches.filter(m => m.fase === 'semifinal');
+  const finalMatch = playoffMatches.find(m => m.fase === 'final');
 
   const getMedalIcon = (position) => {
     if (position === 0) return <Trophy className="w-5 h-5 text-yellow-500" />;
@@ -97,11 +120,12 @@ export default function StandingsTable({ teams, matches, tournament }) {
   };
 
   return (
-    <Card className="border-2 border-sky-100 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-sky-100 to-blue-100">
-        <CardTitle className="flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-sky-600" />
-          Tabla de Posiciones
+    <div className="space-y-4">
+    <Card className="border border-slate-200 shadow-sm">
+      <CardHeader className="bg-slate-50 border-b border-slate-100">
+        <CardTitle className="flex items-center gap-2 text-slate-700">
+          <Trophy className="w-5 h-5 text-slate-500" />
+          Tabla de Posiciones - Fase de Grupos
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
@@ -166,5 +190,93 @@ export default function StandingsTable({ teams, matches, tournament }) {
         </div>
       </CardContent>
     </Card>
+
+    {/* Playoff Section */}
+    {playoffMatches.length > 0 && (
+      <Card className="border border-slate-200 shadow-sm">
+        <CardHeader className="bg-amber-50 border-b border-amber-100">
+          <CardTitle className="flex items-center gap-2 text-amber-800">
+            <Trophy className="w-5 h-5 text-amber-500" />
+            Fases Finales
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4">
+          {/* Semifinals */}
+          {semifinalMatches.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-slate-600 mb-2">Semifinales</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {semifinalMatches.map((match, idx) => {
+                  const details = getPlayoffMatchDetails(match);
+                  return (
+                    <div key={match.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className={`text-sm font-medium ${details.winner?.id === details.team1?.id ? 'text-green-600' : 'text-slate-700'}`}>
+                            {details.team1?.nombre || 'Por definir'}
+                          </p>
+                        </div>
+                        <div className="px-3 text-center">
+                          {match.estado === 'finalizado' ? (
+                            <span className="text-sm font-bold">
+                              {match.sets_equipo1} - {match.sets_equipo2}
+                            </span>
+                          ) : (
+                            <Badge className="bg-slate-200 text-slate-600 text-xs">Pendiente</Badge>
+                          )}
+                        </div>
+                        <div className="flex-1 text-right">
+                          <p className={`text-sm font-medium ${details.winner?.id === details.team2?.id ? 'text-green-600' : 'text-slate-700'}`}>
+                            {details.team2?.nombre || 'Por definir'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Final */}
+          {finalMatch && (
+            <div>
+              <h4 className="text-sm font-semibold text-slate-600 mb-2">Final</h4>
+              <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200">
+                {(() => {
+                  const details = getPlayoffMatchDetails(finalMatch);
+                  return (
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className={`text-base font-semibold ${details.winner?.id === details.team1?.id ? 'text-amber-600' : 'text-slate-700'}`}>
+                          {details.winner?.id === details.team1?.id && '🏆 '}
+                          {details.team1?.nombre || 'Por definir'}
+                        </p>
+                      </div>
+                      <div className="px-4 text-center">
+                        {finalMatch.estado === 'finalizado' ? (
+                          <span className="text-lg font-bold text-amber-700">
+                            {finalMatch.sets_equipo1} - {finalMatch.sets_equipo2}
+                          </span>
+                        ) : (
+                          <Badge className="bg-amber-200 text-amber-700 text-xs">Pendiente</Badge>
+                        )}
+                      </div>
+                      <div className="flex-1 text-right">
+                        <p className={`text-base font-semibold ${details.winner?.id === details.team2?.id ? 'text-amber-600' : 'text-slate-700'}`}>
+                          {details.team2?.nombre || 'Por definir'}
+                          {details.winner?.id === details.team2?.id && ' 🏆'}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    )}
+    </div>
   );
 }
