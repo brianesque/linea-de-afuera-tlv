@@ -106,16 +106,16 @@ export default function StandingsTable({ teams, matches, tournament }) {
   const finalMatch = playoffMatches.find(m => m.fase === 'final');
 
   const getMedalIcon = (position) => {
-    if (position === 0) return <Trophy className="w-5 h-5 text-yellow-500" />;
-    if (position === 1) return <Medal className="w-5 h-5 text-gray-400" />;
-    if (position === 2) return <Medal className="w-5 h-5 text-amber-700" />;
+    if (position === 0) return <Trophy className="w-5 h-5 text-amber-500" />;
+    if (position === 1) return <Medal className="w-5 h-5 text-slate-400" />;
+    if (position === 2) return <Medal className="w-5 h-5 text-slate-500" />;
     return null;
   };
 
   const getPositionClass = (position) => {
-    if (position === 0) return "bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-500";
-    if (position === 1) return "bg-gradient-to-r from-gray-50 to-slate-50 border-l-4 border-gray-400";
-    if (position === 2) return "bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-700";
+    if (position === 0) return "bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-500";
+    if (position === 1) return "bg-slate-100 border-l-4 border-slate-400";
+    if (position === 2) return "bg-slate-50 border-l-4 border-slate-300";
     return "";
   };
 
@@ -194,9 +194,9 @@ export default function StandingsTable({ teams, matches, tournament }) {
     {/* Playoff Section */}
     {playoffMatches.length > 0 && (
       <Card className="border border-slate-200 shadow-sm">
-        <CardHeader className="bg-amber-50 border-b border-amber-100">
-          <CardTitle className="flex items-center gap-2 text-amber-800">
-            <Trophy className="w-5 h-5 text-amber-500" />
+        <CardHeader className="bg-slate-100 border-b border-slate-200">
+          <CardTitle className="flex items-center gap-2 text-slate-700">
+            <Trophy className="w-5 h-5 text-slate-500" />
             Fases Finales
           </CardTitle>
         </CardHeader>
@@ -212,13 +212,13 @@ export default function StandingsTable({ teams, matches, tournament }) {
                     <div key={match.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <p className={`text-sm font-medium ${details.winner?.id === details.team1?.id ? 'text-green-600' : 'text-slate-700'}`}>
+                          <p className={`text-sm font-medium ${details.winner?.id === details.team1?.id ? 'text-green-600 font-bold' : 'text-slate-700'}`}>
                             {details.team1?.nombre || 'Por definir'}
                           </p>
                         </div>
                         <div className="px-3 text-center">
                           {match.estado === 'finalizado' ? (
-                            <span className="text-sm font-bold">
+                            <span className="text-sm font-bold text-slate-800">
                               {match.sets_equipo1} - {match.sets_equipo2}
                             </span>
                           ) : (
@@ -226,7 +226,7 @@ export default function StandingsTable({ teams, matches, tournament }) {
                           )}
                         </div>
                         <div className="flex-1 text-right">
-                          <p className={`text-sm font-medium ${details.winner?.id === details.team2?.id ? 'text-green-600' : 'text-slate-700'}`}>
+                          <p className={`text-sm font-medium ${details.winner?.id === details.team2?.id ? 'text-green-600 font-bold' : 'text-slate-700'}`}>
                             {details.team2?.nombre || 'Por definir'}
                           </p>
                         </div>
@@ -242,28 +242,28 @@ export default function StandingsTable({ teams, matches, tournament }) {
           {finalMatch && (
             <div>
               <h4 className="text-sm font-semibold text-slate-600 mb-2">Final</h4>
-              <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200">
+              <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-300">
                 {(() => {
                   const details = getPlayoffMatchDetails(finalMatch);
                   return (
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className={`text-base font-semibold ${details.winner?.id === details.team1?.id ? 'text-amber-600' : 'text-slate-700'}`}>
+                        <p className={`text-base font-semibold ${details.winner?.id === details.team1?.id ? 'text-amber-700 font-bold' : 'text-slate-600'}`}>
                           {details.winner?.id === details.team1?.id && '🏆 '}
                           {details.team1?.nombre || 'Por definir'}
                         </p>
                       </div>
                       <div className="px-4 text-center">
                         {finalMatch.estado === 'finalizado' ? (
-                          <span className="text-lg font-bold text-amber-700">
+                          <span className="text-lg font-bold text-slate-800">
                             {finalMatch.sets_equipo1} - {finalMatch.sets_equipo2}
                           </span>
                         ) : (
-                          <Badge className="bg-amber-200 text-amber-700 text-xs">Pendiente</Badge>
+                          <Badge className="bg-slate-200 text-slate-600 text-xs">Pendiente</Badge>
                         )}
                       </div>
                       <div className="flex-1 text-right">
-                        <p className={`text-base font-semibold ${details.winner?.id === details.team2?.id ? 'text-amber-600' : 'text-slate-700'}`}>
+                        <p className={`text-base font-semibold ${details.winner?.id === details.team2?.id ? 'text-amber-700 font-bold' : 'text-slate-600'}`}>
                           {details.team2?.nombre || 'Por definir'}
                           {details.winner?.id === details.team2?.id && ' 🏆'}
                         </p>
