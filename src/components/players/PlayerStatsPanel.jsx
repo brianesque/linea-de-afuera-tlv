@@ -154,13 +154,29 @@ export default function PlayerStatsPanel({
       diferenciaPuntos: puntosAFavor - puntosEnContra,
       campeonatos,
       winRate: partidosJugados > 0 ? (partidosGanados / partidosJugados) * 100 : 0,
-      promedioPuntosPorPartido: partidosJugados > 0 ? (puntosAFavor / partidosJugados).toFixed(1) : 0,
-      promedioSetsPorPartido: partidosJugados > 0 ? (setsAFavor / partidosJugados).toFixed(2) : 0
+      promedioDiferenciaPuntosPorPartido: partidosJugados > 0 ? ((puntosAFavor - puntosEnContra) / partidosJugados).toFixed(1) : 0
     };
   };
 
   const selectedPlayer = players.find(p => p.id === selectedPlayerId);
   const selectedStats = getPlayerStats(selectedPlayer);
+
+  // Calculate averages across all players
+  const allPlayerStats = useMemo(() => {
+    return players.map(p => getPlayerStats(p)).filter(s => s && s.partidosJugados > 0);
+  }, [players, tournaments, teams, matches]);
+
+  const averageWinRate = useMemo(() => {
+    if (allPlayerStats.length === 0) return 0;
+    const sum = allPlayerStats.reduce((acc, s) => acc + s.winRate, 0);
+    return sum / allPlayerStats.length;
+  }, [allPlayerStats]);
+
+  const averageDiferenciaPuntos = useMemo(() => {
+    if (allPlayerStats.length === 0) return 0;
+    const sum = allPlayerStats.reduce((acc, s) => acc + s.diferenciaPuntos, 0);
+    return sum / allPlayerStats.length;
+  }, [allPlayerStats]);
 
   const comparisonPlayers = comparisonPlayerIds.map(id => {
     const player = players.find(p => p.id === id);
@@ -504,14 +520,37 @@ export default function PlayerStatsPanel({
 
           <div className="space-y-1 border-t border-slate-100 pt-3">
             <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-500">Prom. Puntos/Partido</span>
-              <span className="text-xs font-bold text-slate-800">{selectedStats?.promedioPuntosPorPartido || 0}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span className="text-xs text-slate-500">Prom. Sets/Partido</span>
-              <span className="text-xs font-bold text-slate-800">{selectedStats?.promedioSetsPorPartido || 0}</span>
+              <span className="text-xs text-slate-500">Prom. Dif. Puntos/Partido</span>
+              <span className={`text-xs font-bold ${parseFloat(selectedStats?.promedioDiferenciaPuntosPorPartido || 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                {parseFloat(selectedStats?.promedioDiferenciaPuntosPorPartido || 0) > 0 ? '+' : ''}{selectedStats?.promedioDiferenciaPuntosPorPartido || 0}
+              </span>
             </div>
           </div>
+
+          {/* Comparison vs Average */}
+          {selectedStats?.partidosJugados > 0 && (
+            <div className="space-y-2 border-t border-slate-100 pt-3">
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">vs Promedio General</p>
+              <div className="flex justify-between items-center py-1.5 px-2 rounded border bg-slate-50 border-slate-100">
+                <span className="text-xs text-slate-500">Win Rate</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400">({averageWinRate.toFixed(0)}% prom.)</span>
+                  <Badge className={`text-[10px] ${selectedStats.winRate >= averageWinRate ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                    {selectedStats.winRate >= averageWinRate ? '↑ Por encima' : '↓ Por debajo'}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex justify-between items-center py-1.5 px-2 rounded border bg-slate-50 border-slate-100">
+                <span className="text-xs text-slate-500">Dif. Puntos</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400">({averageDiferenciaPuntos.toFixed(0)} prom.)</span>
+                  <Badge className={`text-[10px] ${selectedStats.diferenciaPuntos >= averageDiferenciaPuntos ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                    {selectedStats.diferenciaPuntos >= averageDiferenciaPuntos ? '↑ Por encima' : '↓ Por debajo'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Comparison Section */}
           {comparisonPlayers.length > 0 && (
