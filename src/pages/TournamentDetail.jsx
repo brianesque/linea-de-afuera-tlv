@@ -625,14 +625,14 @@ export default function TournamentDetail() {
                   </div>
 
                   {/* Mobile Sidebar - toggle with hamburger */}
-                  <div className={`md:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <div className="absolute top-2 right-2 z-10">
+                  <div className={`md:hidden fixed inset-y-0 left-0 z-50 w-56 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <div className="absolute top-1 right-1 z-10">
                       <button
                         type="button"
-                        className="h-11 w-11 flex items-center justify-center rounded-lg text-slate-500 active:bg-slate-100 touch-manipulation"
+                        className="h-10 w-10 flex items-center justify-center rounded-lg text-slate-500 active:bg-slate-100 touch-manipulation"
                         onClick={() => setShowMobileSidebar(false)}
                       >
-                        <X className="w-6 h-6" />
+                        <X className="w-5 h-5" />
                       </button>
                     </div>
                     <PlayerListSidebar
@@ -660,13 +660,13 @@ export default function TournamentDetail() {
                   
                   <div className="flex-1 h-full bg-white shadow-xl overflow-hidden">
                     {/* Mobile hamburger button */}
-                    <div className="md:hidden absolute top-2 left-2 z-30">
+                    <div className="md:hidden absolute top-1.5 left-1.5 z-30">
                       <button
                         type="button"
-                        className="h-11 w-11 flex items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm active:bg-slate-100 touch-manipulation"
+                        className="h-10 w-10 flex items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm active:bg-slate-100 touch-manipulation"
                         onClick={() => setShowMobileSidebar(true)}
                       >
-                        <Menu className="w-6 h-6 text-slate-600" />
+                        <Menu className="w-5 h-5 text-slate-600" />
                       </button>
                     </div>
 
