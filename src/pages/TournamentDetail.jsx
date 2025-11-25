@@ -626,15 +626,14 @@ export default function TournamentDetail() {
 
                   {/* Mobile Sidebar - toggle with hamburger */}
                   <div className={`md:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <div className="absolute top-3 right-3 z-10">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-500 hover:text-slate-700"
+                    <div className="absolute top-2 right-2 z-10">
+                      <button
+                        type="button"
+                        className="h-11 w-11 flex items-center justify-center rounded-lg text-slate-500 active:bg-slate-100 touch-manipulation"
                         onClick={() => setShowMobileSidebar(false)}
                       >
-                        <X className="w-5 h-5" />
-                      </Button>
+                        <X className="w-6 h-6" />
+                      </button>
                     </div>
                     <PlayerListSidebar
                       players={sidebarFilteredPlayers}
@@ -661,15 +660,14 @@ export default function TournamentDetail() {
                   
                   <div className="flex-1 h-full bg-white shadow-xl overflow-hidden">
                     {/* Mobile hamburger button */}
-                    <div className="md:hidden absolute top-3 left-3 z-30">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-9 w-9 bg-white border-slate-200 shadow-sm"
+                    <div className="md:hidden absolute top-2 left-2 z-30">
+                      <button
+                        type="button"
+                        className="h-11 w-11 flex items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm active:bg-slate-100 touch-manipulation"
                         onClick={() => setShowMobileSidebar(true)}
                       >
-                        <Menu className="w-5 h-5 text-slate-600" />
-                      </Button>
+                        <Menu className="w-6 h-6 text-slate-600" />
+                      </button>
                     </div>
 
                     <PlayerStatsPanel
