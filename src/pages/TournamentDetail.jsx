@@ -6,7 +6,7 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Calendar, Trophy, DollarSign, Play, User, Settings, Trash2, TrendingUp, X } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Trophy, DollarSign, Play, User, Settings, Trash2, TrendingUp, X, Menu } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
@@ -49,6 +49,7 @@ export default function TournamentDetail() {
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
   const [comparisonPlayerIds, setComparisonPlayerIds] = useState([]);
   const [sidebarSearchTerm, setSidebarSearchTerm] = useState("");
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   const { data: tournament, isLoading } = useQuery({
     queryKey: ['tournament', tournamentId],
@@ -604,11 +605,13 @@ export default function TournamentDetail() {
                   onClick={() => {
                     setSelectedPlayerId(null);
                     setComparisonPlayerIds([]);
+                    setShowMobileSidebar(false);
                   }}
                 />
                 
                 <div className="relative flex h-full w-full max-w-4xl ml-auto">
-                  <div className="w-64 h-full bg-white shadow-xl">
+                  {/* Desktop Sidebar */}
+                  <div className="hidden md:block w-64 h-full bg-white shadow-xl">
                     <PlayerListSidebar
                       players={sidebarFilteredPlayers}
                       selectedPlayerId={selectedPlayerId}
@@ -620,8 +623,55 @@ export default function TournamentDetail() {
                       isAdmin={isAdmin}
                     />
                   </div>
+
+                  {/* Mobile Sidebar - toggle with hamburger */}
+                  <div className={`md:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <div className="absolute top-3 right-3 z-10">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-500 hover:text-slate-700"
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <X className="w-5 h-5" />
+                      </Button>
+                    </div>
+                    <PlayerListSidebar
+                      players={sidebarFilteredPlayers}
+                      selectedPlayerId={selectedPlayerId}
+                      comparisonPlayerIds={comparisonPlayerIds}
+                      onSelectPlayer={(id) => {
+                        setSelectedPlayerId(id);
+                        setShowMobileSidebar(false);
+                      }}
+                      onToggleComparison={handleToggleComparison}
+                      searchTerm={sidebarSearchTerm}
+                      onSearchChange={setSidebarSearchTerm}
+                      isAdmin={isAdmin}
+                    />
+                  </div>
+
+                  {/* Mobile Sidebar Backdrop */}
+                  {showMobileSidebar && (
+                    <div 
+                      className="md:hidden fixed inset-0 bg-black/30 z-40"
+                      onClick={() => setShowMobileSidebar(false)}
+                    />
+                  )}
                   
                   <div className="flex-1 h-full bg-white shadow-xl overflow-hidden">
+                    {/* Mobile hamburger button */}
+                    <div className="md:hidden absolute top-3 left-3 z-30">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 bg-white border-slate-200 shadow-sm"
+                        onClick={() => setShowMobileSidebar(true)}
+                      >
+                        <Menu className="w-5 h-5 text-slate-600" />
+                      </Button>
+                    </div>
+
                     <PlayerStatsPanel
                       players={allPlayers}
                       selectedPlayerId={selectedPlayerId}
@@ -631,6 +681,7 @@ export default function TournamentDetail() {
                       onClose={() => {
                         setSelectedPlayerId(null);
                         setComparisonPlayerIds([]);
+                        setShowMobileSidebar(false);
                       }}
                       tournaments={allTournaments}
                       teams={allTeams}
