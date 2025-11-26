@@ -10,6 +10,7 @@ import { createPageUrl } from "@/utils";
 import { Plus, Trophy, Calendar, Users, Waves, Search, Filter, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import DeleteTournamentDialog from "@/components/home/DeleteTournamentDialog";
+import ReleaseNotesDialog from "@/components/home/ReleaseNotesDialog";
 import { format, isAfter, isBefore, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -178,6 +179,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen p-3 md:p-6 bg-slate-50">
+      <ReleaseNotesDialog />
       <div className="max-w-7xl mx-auto">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 p-8 md:p-14 mb-4 shadow-lg min-h-[180px] md:min-h-[280px]">
           {/* Mobile background */}
