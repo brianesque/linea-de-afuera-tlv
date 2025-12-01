@@ -51,7 +51,10 @@ export default function ReleaseNotesDialog() {
   ];
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) localStorage.setItem(STORAGE_KEY, RELEASE_VERSION);
+      setOpen(isOpen);
+    }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-between">
