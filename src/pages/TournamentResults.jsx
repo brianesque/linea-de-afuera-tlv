@@ -10,6 +10,7 @@ import TeamsGrid from "../components/results/TeamsGrid";
 import MatchSchedule from "../components/results/MatchSchedule";
 import ShoppingList from "../components/results/ShoppingList";
 import StartTournamentDialog from "../components/results/StartTournamentDialog";
+import TournamentPDFExport from "../components/results/TournamentPDFExport";
 
 export default function TournamentResults() {
   const navigate = useNavigate();
@@ -84,12 +85,20 @@ export default function TournamentResults() {
               <p className="text-gray-600">Equipos, fixture y lista de compras</p>
             </div>
           </div>
-          {tournament?.estado === 'equipos_armados' && (
-            <StartTournamentDialog 
-              tournament={tournament} 
-              tournamentId={tournamentId}
+          <div className="flex items-center gap-2 flex-wrap">
+            <TournamentPDFExport
+              tournament={tournament}
+              teams={teams}
+              matches={matches}
+              allPlayers={allPlayers}
             />
-          )}
+            {tournament?.estado === 'equipos_armados' && (
+              <StartTournamentDialog
+                tournament={tournament}
+                tournamentId={tournamentId}
+              />
+            )}
+          </div>
         </div>
 
         <Tabs defaultValue="teams" className="space-y-6">
